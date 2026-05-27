@@ -1,0 +1,4 @@
+This software incorporates third-party projects under licenses as listed below.
+
+- GNU Quadmath LESSER GENERAL PUBLIC LICENSE Version 3 https://gcc.gnu.org/onlinedocs/libquadmath/
+- public-domain code for Keccak (https://keccak.team/2015/tweetfips202.html) from kyber (https://github.com/pq-crystals/kyber).

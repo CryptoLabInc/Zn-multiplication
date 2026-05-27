@@ -1,10 +1,5 @@
 # FHE Benchmarking Suite - 64-bits multiplication
-This repository contains the harness for the 64-bits multiplication workload of the FHE benchmarking suite of [HomomorphicEncryption.org](https://www.HomomorphicEncryption.org).
-The harness currently supports ‘half’ multiplication with a 64-bits output.
-The `main` branch contains a reference implementation of this workload, under the `submission` subdirectory.
-
-Submitters need to clone this repository, replace the content of the `submission` subdirectory by their own implementation.
-They also may need to changes or replace the script `scripts/build_task.sh` to account for dependencies and build environment for their submission.
+This is a submission for the FHE benchmarking suite by CryptoLab Inc. using the scheme described in the paper [FHE for SIMD Arithmetic Logic Units with Amortized O(1) Bootstrapping per Ciphertext](https://eprint.iacr.org/2026/233).
 
 ## Execution Modes
 
@@ -20,24 +15,38 @@ All steps are executed on a single machine:
 ## Running the 64-bits multiplication workload
 
 #### Dependencies
-- Python 3.12+
-- The build environment for local execution depends on the Rust toolchain being installed. See https://rust-lang.org/tools/install/ .
+- [Miniforge](https://github.com/conda-forge/miniforge) (conda package manager)
+- Python 3.12+ with `numpy`
+- CMake 3.23+
+- gcc 14.3.0
+- HEaaN2 library (pre-built for `x86_64` Linux, provided in `submission/install/`)
+
+All dependencies (except HEaaN2) can be installed via conda using the provided `environment.yml`.
+
+> **Note:** The bundled HEaaN2 library is compiled for the `x86_64` architecture on Linux. Running the workload on other architectures (e.g. `aarch64`/Apple Silicon) is not supported.
+
+#### Installing Miniforge
+If you don't already have conda, install Miniforge first. On Linux `x86_64`:
+```console
+curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+bash ~/Miniconda3-latest-Linux-x86_64.sh
+source ~/.bashrc
+```
+You can optionally run `conda init` to have conda available in new shells automatically.
 
 #### Execution
-To run the workload, clone and install dependencies:
+To run the workload, clone the repository and set up the environment:
 ```console
 git clone https://github.com/fhe-benchmarking/Zn-multiplication.git
 cd Zn-multiplication
 
-python -m venv virtualenv
-source ./virtualenv/bin/activate
-pip install -r requirements.txt
+conda env create -f environment.yml
+conda activate zn-multiplication
 
 python3 harness/run_submission.py -h  # Information about command-line options
 ```
 
-The harness script `harness/run_submission.py` will attempt to build the submission itself, downloading required Rust crates, if it is not already built. If already built, it will use the same project without re-building it (unless the code has changed). An example run is provided below.
-
+The harness script `harness/run_submission.py` will build the submission using CMake on the first run (via `scripts/build_task.sh`). Subsequent runs reuse the already-built binaries.
 
 ```console
 $ python3 harness/run_submission.py -h
@@ -50,7 +59,7 @@ positional arguments:
 
 options:
   -h, --help           show this help message and exit
-  --num_runs NUM_RUNS  Number of times to run steps 4-9 (default: 1)
+  --num_runs NUM_RUNS  Number of times to run steps 5-7 (default: 1)
   --seed SEED          Random seed for dataset generation
   --clrtxt CLRTXT      Specify with 1 if to rerun the cleartext computation
 ```
@@ -61,37 +70,42 @@ The single instance runs the multiplication for a single pair of inputs and veri
 $ python3 ./harness/run_submission.py 0 --seed 3 --num_runs 2
 
 [harness] Running submission for single dataset
-Build the submission executable...
-Rust toolchain already installed.
-   Compiling zn_multiplication v0.1.0 (/media/florent/Optalysys/Zn-multiplication/submission)
-    Finished `release` profile [optimized] target(s) in 0.61s
-Executable built
-08:58:21 [harness] 1: Dataset generation completed (elapsed: 0.1762s)
-08:58:22 [harness] 2: Key generation completed (elapsed: 0.8709s)
-         [harness] Public and evaluation keys size: 125.0M
-08:58:22 [harness] 3: Encryption completed (elapsed: 0.0094s)
-         [harness] Client: encrypted inputs size: 1.0M
+-- Found OpenMP_CXX: -fopenmp (found version "4.5")
+-- Found OpenMP_CXX: -fopenmp (found version "4.5")
+-- Configuring done (0.1s)
+-- Generating done (0.0s)
+-- Build files have been written to: ../submission/build
+[ 20%] Built target Zn-multiplication
+[ 33%] Built target client_preprocess_input
+[ 46%] Built target client_postprocess
+[ 66%] Built target client_encode_encrypt_input
+[ 80%] Built target client_key_generation
+[ 86%] Built target server_encrypted_compute
+[100%] Built target client_decrypt_decode
+16:50:40 [harness] 1: Input generation completed (elapsed: 0.1612s)
+16:50:40 [harness] 2: Input preprocessing completed (elapsed: 0.0008s)
+16:50:40 [harness] 3: Key Generation completed (elapsed: 0.0338s)
+         [harness] Public and evaluation keys size: 1.5M
+16:50:40 [harness] 4: Input encryption completed (elapsed: 0.0381s)
+         [harness] Encrypted input size: 4.0M
 
          [harness] Run 1 of 2
-08:58:28 [harness] 4: Homomorphic mul completed (elapsed: 6.7748s)
-         [harness] Client: encrypted results size: 514.4K
-08:58:28 [harness] 5: Decryption completed (elapsed: 0.0087s)
-08:58:28 [harness] 6: Checking results completed (elapsed: 0.0038s)
-[total latency] 7.8438s
+16:50:40 [harness] 5: Encrypted computation completed (elapsed: 0.067s)
+         [harness] Encrypted results size: 2.0M
+16:50:40 [harness] 6: Result decryption completed (elapsed: 0.0556s)
+16:50:40 [harness] 7: Result postprocessing completed (elapsed: 0.0007s)
+[harness] PASS
+[total latency] 0.3571s
 
          [harness] Run 2 of 2
-08:58:35 [harness] 4: Homomorphic mul completed (elapsed: 6.8825s)
-         [harness] Client: encrypted results size: 514.4K
-08:58:35 [harness] 5: Decryption completed (elapsed: 0.0075s)
-08:58:35 [harness] 6: Checking results completed (elapsed: 0.0006s)
-[total latency] 7.9471s
+16:50:40 [harness] 5: Encrypted computation completed (elapsed: 0.1622s)
+         [harness] Encrypted results size: 2.0M
+16:50:40 [harness] 6: Result decryption completed (elapsed: 0.0237s)
+16:50:40 [harness] 7: Result postprocessing completed (elapsed: 0.0006s)
+[harness] PASS
+[total latency] 0.4203s
 
 All steps completed for the single dataset!
-```
-
-After finishing the run, deactivate the virtual environment.
-```console
-deactivate
 ```
 
 ## Directory structure
@@ -113,7 +127,7 @@ The directory structure of this reposiroty is as follows:
 ├─ scripts/      # Helper scripts for dependencies and build system
 └─ submission/   # This is where the workload implementation lives
     ├─ README.md   # Submission documentation (mandatory)
-    ├─ LICENSE.md  # Optional software license (if different from Apache v2)
+    ├─ LICENSE.md  # Software license (different from Apache v2)
     └─ [...]
 ```
 Submitters must overwrite the contents of the `scripts` and `submissions`

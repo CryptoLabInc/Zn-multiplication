@@ -1,0 +1,8 @@
+name: zn-multiplication
+channels:
+  - conda-forge
+dependencies:
+  - gcc_linux-64=14.3.0
+  - gxx_linux-64=14.3.0
+  - cmake>=3.23
+  - numpy>=1.20
