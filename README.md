@@ -1,6 +1,9 @@
 # FHE Benchmarking Suite - 64-bits multiplication
 This is a submission for the FHE benchmarking suite by CryptoLab Inc. using the scheme described in the paper [FHE for SIMD Arithmetic Logic Units with Amortized O(1) Bootstrapping per Ciphertext](https://eprint.iacr.org/2026/233).
 
+## Benchmark Results
+The benchmark results were measured on AWS EC2 i7ie.24xlarge. 
+
 ## Execution Modes
 
 The 64-bits workload currently only support local execution mode:
