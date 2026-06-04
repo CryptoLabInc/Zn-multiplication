@@ -133,7 +133,7 @@ def save_run(path: Path, submission_report_path: Path):
     global _bandwidth
 
     _timestampsStr["Total"] = f"{round(sum(_timestamps.values()), 4)}s"
-    
+    _timestampsReported = {} 
     if submission_report_path.exists():
         with open(submission_report_path, "r") as f:
             server_reported_times = json.load(f)
