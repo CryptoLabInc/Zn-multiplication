@@ -18,7 +18,7 @@ int main(int argc, char **argv) {
   auto t_read_sk = Clock::now();
   auto sk =
       serial::loadAsPtr<ISecretKey>((io / "secret_keys" / "sk.bin").string());
-  log_time("read secret key", elapsed_ms(t_read_sk));
+  log_time("Read secret key", elapsed_ms(t_read_sk));
 
   auto t_setup = Clock::now();
   EnDecryptor encryptor(params.enc_params);
@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
   word_ecd_params.setLogDegree(log_degree);
   word_ecd_params.setBatchSize(batch_size);
   WordEncoder word_encoder(word_ecd_params);
-  log_time("setup (decryptor/decoder)", elapsed_ms(t_setup));
+  log_time("Setup", elapsed_ms(t_setup));
 
   auto out_dir = io / "cleartext_output";
   ensureDir(out_dir);
@@ -70,9 +70,9 @@ int main(int argc, char **argv) {
     total_write_ms += elapsed_ms(t_wr);
   }
 
-  log_time("read result ciphertexts", total_read_ms);
-  log_time("decrypt", total_decrypt_ms);
-  log_time("decode (decode+complexToWord)", total_decode_ms);
-  log_time("write output text", total_write_ms);
+  log_time("Read result ciphertexts", total_read_ms);
+  log_time("Decrypt", total_decrypt_ms);
+  log_time("Decode", total_decode_ms);
+  log_time("Write output text", total_write_ms);
   return 0;
 }

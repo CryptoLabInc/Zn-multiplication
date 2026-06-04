@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
   auto t_read = Clock::now();
   auto all_words0 = readWordsText(ddir / "lhs.txt", total_batches, num_words);
   auto all_words1 = readWordsText(ddir / "rhs.txt", total_batches, num_words);
-  log_time("read input texts", elapsed_ms(t_read));
+  log_time("Read input texts", elapsed_ms(t_read));
 
   auto t_setup = Clock::now();
   WordEncodeParams word_ecd_params;
@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
 
   EnDecryptor encryptor(params.enc_params);
   ensureDir(io / "ciphertexts_upload");
-  log_time("setup (encoder/sk/encryptor)", elapsed_ms(t_setup));
+  log_time("Setup", elapsed_ms(t_setup));
 
   double total_encode_ms = 0, total_encrypt_ms = 0, total_write_ms = 0;
 
@@ -101,8 +101,8 @@ int main(int argc, char **argv) {
     total_write_ms += elapsed_ms(t_write);
   }
 
-  log_time("encode (wordToComplex+encode)", total_encode_ms);
-  log_time("encrypt", total_encrypt_ms);
-  log_time("write ciphertexts", total_write_ms);
+  log_time("Encode", total_encode_ms);
+  log_time("Encrypt", total_encrypt_ms);
+  log_time("Write ciphertexts", total_write_ms);
   return 0;
 }

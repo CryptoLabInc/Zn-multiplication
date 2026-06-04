@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
   auto t_read_key = Clock::now();
   auto relin_key = serial::loadAsPtr<ISwKey>(
       (io / "public_keys" / "relin_key.bin").string());
-  log_time("read relin key", elapsed_ms(t_read_key));
+  log_time("Read relin key", elapsed_ms(t_read_key));
 
   auto t_setup = Clock::now();
   // Build the fixed reduction plaintext t(X) = -2 + X at each word slot.
@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
 
   HomEval eval(params.eval_params);
   HomEvalFlexible eval_flex;
-  log_time("setup (plaintext/eval)", elapsed_ms(t_setup));
+  log_time("Setup", elapsed_ms(t_setup));
 
   ensureDir(io / "ciphertexts_download");
 
@@ -81,8 +81,8 @@ int main(int argc, char **argv) {
     total_write_ms += elapsed_ms(t_wr);
   }
 
-  log_time("read ciphertexts", total_read_ms);
-  log_time("compute (tensor+relin+mul+rescale)", total_compute_ms);
-  log_time("write result ciphertexts", total_write_ms);
+  log_time("Read ciphertexts", total_read_ms);
+  log_time("Compute", total_compute_ms);
+  log_time("Write result ciphertexts", total_write_ms);
   return 0;
 }

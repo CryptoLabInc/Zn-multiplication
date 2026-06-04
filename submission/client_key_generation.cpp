@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
   auto sk = SKGenerator(params.skgen_params).genKey();
 
   auto relin_key = SwKeyGenerator(params.swkgen_params).genRelinKey(*sk);
-  log_time("keygen compute", elapsed_ms(t0));
+  log_time("Keygen compute", elapsed_ms(t0));
 
   auto io = ioDir(instance);
   ensureDir(io / "secret_keys");
@@ -24,7 +24,7 @@ int main(int argc, char **argv) {
   auto t1 = Clock::now();
   serial::save((io / "secret_keys" / "sk.bin").string(), *sk);
   serial::save((io / "public_keys" / "relin_key.bin").string(), *relin_key);
-  log_time("keygen write", elapsed_ms(t1));
+  log_time("Keygen write", elapsed_ms(t1));
 
   return 0;
 }
