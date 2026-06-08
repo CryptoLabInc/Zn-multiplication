@@ -1,13 +1,13 @@
 {
   "Timing": {
-    "Input generation": "0.1245s",
+    "Input generation": "0.0831s",
     "Input preprocessing": "0.001s",
-    "Key Generation": "0.7175s",
-    "Input encryption": "0.0114s",
-    "Encrypted computation": "3.6195s",
-    "Result decryption": "0.0026s",
-    "Result postprocessing": "0.0008s",
-    "Total": "4.4774s"
+    "Key Generation": "0.7269s",
+    "Input encryption": "0.0115s",
+    "Encrypted computation": "3.672s",
+    "Result decryption": "0.003s",
+    "Result postprocessing": "0.0011s",
+    "Total": "4.4985s"
   },
   "Bandwidth": {
     "Public and evaluation keys": "125.0M",
@@ -15,10 +15,7 @@
     "Encrypted results": "514.4K"
   },
   "Server Reported": {
-    "Loading keys": "0.29837445s",
-    "Loading inputs": "0.0006508890000000001s",
-    "Homomorphic multiplications": "3.3072712780000004s",
-    "Write results": "0.000527973s",
-    "Total": "3.6068402300000004s"
+    "Encrypted computation": "3.351s",
+    "Total": "3.659s"
   }
 }
