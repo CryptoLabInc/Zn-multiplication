@@ -4,5 +4,6 @@ channels:
 dependencies:
   - gcc_linux-64=14.3.0
   - gxx_linux-64=14.3.0
+  - make
   - cmake>=3.23
   - numpy>=1.20
