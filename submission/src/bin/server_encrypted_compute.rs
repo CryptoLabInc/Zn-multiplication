@@ -16,7 +16,7 @@ use tfhe::{ FheUint64, set_server_key, ServerKey };
 use zn_multiplication::half_cipher_cipher_mul_64;
 
 fn get_runtime(t: &Instant) -> String {
-    format!("{:.3}", (t.elapsed().as_nanos() as f64) * 1e-9)
+    format!("{:.5}", (t.elapsed().as_nanos() as f64) * 1e-9)
 }
 
 
@@ -24,6 +24,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let time_start_server = Instant::now();
     
     // Get the number of inputs from the first argument
+    let time_start = Instant::now();
     let args: Vec<String> = env::args().collect();
     if args.len() < 3 {
         eprintln!("Usage: {} <size> <data size>", args[0]);
@@ -36,12 +37,18 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Map to store profiling results
     let mut runtime_steps = IndexMap::new();
+    runtime_steps.insert("Server initialization".to_string(),
+                         get_runtime(&time_start));
 
     // Load the server key
+    let time_start = Instant::now();
     let serialised_data = fs::read(io_dir.clone() + "/public_keys/pk.bin")?;
     let server_key: ServerKey = bincode::deserialize(&serialised_data)?;
     set_server_key(server_key);
+    runtime_steps.insert("Load public keys".to_string(),
+                         get_runtime(&time_start));
  
+    let time_start = Instant::now();
     // Load the LHS input ciphers
     let ciphertexts_in_dir = io_dir.clone() + "/ciphertexts_upload";
     let ciphers_lhs = (0 .. data_size).map(|i|
@@ -54,6 +61,9 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         bincode::deserialize::<FheUint64>(&fs::read(ciphertexts_in_dir.clone() + "/cipher_rhs_" + &i.to_string() + ".bin")?)
     ).collect::<Result<Vec<FheUint64>, Box<bincode::ErrorKind>>>()?;
     
+    runtime_steps.insert("Read inputs".to_string(),
+                         get_runtime(&time_start));
+    
     // Run the homomorphic multiplications
     let time_start = Instant::now();
     let ciphers_out = ciphers_lhs.iter().zip(ciphers_rhs.iter())
@@ -64,6 +74,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
                          get_runtime(&time_start));
 
     // Write the results
+    let time_start = Instant::now();
     let ciphertexts_out_dir = io_dir.clone() + "/ciphertexts_download";
     if !Path::new(&ciphertexts_out_dir).exists() {
         fs::create_dir(&ciphertexts_out_dir)?;
@@ -71,6 +82,8 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     for (i, cipher) in ciphers_out.iter().enumerate() {
         fs::write(ciphertexts_out_dir.clone() + "/cipher_out_" + &i.to_string() + ".bin", &bincode::serialize(&cipher)?)?
     }
+    runtime_steps.insert("Write outputs".to_string(),
+                         get_runtime(&time_start));
     
     //Total server runtime
     runtime_steps.insert("Total".to_string(),
