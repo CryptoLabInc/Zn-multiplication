@@ -1,13 +1,13 @@
 {
   "Timing": {
-    "Input generation": "23.6114s",
+    "Input generation": "19.3342s",
     "Input preprocessing": "0.0008s",
-    "Key Generation": "0.0276s",
-    "Input encryption": "54.9136s",
-    "Encrypted computation": "317.0297s",
-    "Result decryption": "23.2635s",
-    "Result postprocessing": "0.0008s",
-    "Total": "418.8475s"
+    "Key Generation": "0.0189s",
+    "Input encryption": "48.9956s",
+    "Encrypted computation": "229.497s",
+    "Result decryption": "21.0837s",
+    "Result postprocessing": "0.0009s",
+    "Total": "318.9311s"
   },
   "Bandwidth": {
     "Public and evaluation keys": "1.5M",
