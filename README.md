@@ -2,7 +2,132 @@
 This is a submission for the FHE benchmarking suite by CryptoLab Inc. using the scheme described in the paper [FHE for SIMD Arithmetic Logic Units with Amortized O(1) Bootstrapping per Ciphertext](https://eprint.iacr.org/2026/233).
 
 ## Benchmark Results
-The benchmark results were measured on AWS EC2 i7ie.24xlarge. 
+The benchmark results were measured on **AWS EC2 i7ie.metal-24xl**. 
+
+We provide the results with step-by-step breakdown here because the harness does not separate the runtime of compute and I/O operations, and the latter may vary across the runs. 
+
+The breakdown was obtained by adding logging in the submission code to measure the runtime of individual steps. One can reproduce the breakdown by running the submission as usual.
+
+All times are in milliseconds (ms).
+### Single Instances
+
+**Common steps** 
+
+| Phase | Step | |
+| --- | --- | ---: |
+| KeyGen | Compute | 13.5 |
+| | Write | 0.45 |
+| Encryption | Read input texts | 0.04 |
+| | Setup | 0.14 |
+| | Encode | 13.5 |
+| | Encrypt | 5.3 |
+| | Write ciphertexts | 1.1 |
+
+**Per-run steps**
+
+| Phase | Step | Run 1 | Run 2 | Run 3 |
+| --- | --- | ---: | ---: | ---: |
+| Compute | Read relin key | 3.3 | 4.4 | 3.3 |
+| | Setup | 20.6 | 20.0 | 21.7 |
+| | Read ciphertexts | 1.4 | 1.3 | 1.1 |
+| | Compute | 10.6 | 10.3 | 10.5 |
+| | Write result ciphertexts | 0.61 | 0.67 | 0.58 |
+| Decryption | Read secret key | 0.12 | 0.14 | 0.10 |
+| | Setup | 0.007 | 0.007 | 0.006 |
+| | Read result ciphertexts | 0.66 | 0.68 | 0.52 |
+| | Decrypt | 5.1 | 5.2 | 4.4 |
+| | Decode | 5.3 | 5.5 | 5.6 |
+| | Write output text | 0.003 | 0.003 | 0.002 |
+
+### Small Instances
+
+**Common steps** 
+
+| Phase | Step | Time (ms) |
+| --- | --- | ---: |
+| KeyGen | Compute | 13.7 |
+| | Write | 0.43 |
+| Encryption | Read input texts | 0.17 |
+| | Setup | 0.13 |
+| | Encode | 14.2 |
+| | Encrypt | 5.3 |
+| | Write ciphertexts | 1.1 |
+
+**Per-run steps**
+
+| Phase | Step | Run 1 | Run 2 | Run 3 |
+| --- | --- | ---: | ---: | ---: |
+| Compute | Read relin key | 3.4 | 3.5 | 3.1 |
+| | Setup | 19.9 | 21.1 | 20.6 |
+| | Read ciphertexts | 1.8 | 1.4 | 1.2 |
+| | Compute | 10.1 | 10.4 | 10.4 |
+| | Write result ciphertexts | 0.62 | 0.68 | 0.59 |
+| Decryption | Read secret key | 0.12 | 0.11 | 0.11 |
+| | Setup | 0.006 | 0.006 | 0.004 |
+| | Read result ciphertexts | 0.68 | 0.53 | 0.51 |
+| | Decrypt | 5.09 | 5.03 | 5.34 |
+| | Decode | 5.9 | 5.8 | 6.57 |
+| | Write output text | 0.07 | 0.07 | 0.07 |
+
+### Medium Instances
+
+**Common steps** 
+
+| Phase | Step | Time (ms) |
+| --- | --- | ---: |
+| KeyGen | Compute | 13.1 |
+| | Write | 0.45 |
+| Encryption | Read input texts | 11.8 |
+| | Setup | 0.15 |
+| | Encode | 218 |
+| | Encrypt | 160 |
+| | Write ciphertexts | 219 |
+
+**Per-run steps**
+
+| Phase | Step | Run 1 | Run 2 | Run 3 |
+| --- | --- | ---: | ---: | ---: |
+| Compute | Read relin key | 3.6 | 3.8 | 3.8 |
+| | Setup | 65.6 | 66 | 65.8 |
+| | Read ciphertexts | 200 | 201 | 202 |
+| | Compute | 94.3 | 88.7 | 91.3 |
+| | Write result ciphertexts | 129 | 951 | 1340 |
+| Decryption | Read secret key | 0.15 | 0.14 | 0.16 |
+| | Setup | 0.005 | 0.008 | 0.008 |
+| | Read result ciphertexts | 96.1 | 92.0 | 102 |
+| | Decrypt | 67.66 | 52.11 | 52.54 |
+| | Decode | 102.77 | 105.7 | 104.74 |
+| | Write output text | 5.7 | 5.7 | 5.7 |
+
+### Large Instances
+
+**Common steps**
+
+| Phase | Step | Time (ms) |
+| --- | --- | ---: |
+| KeyGen | Compute | 15.5 |
+| | Write | 0.53 |
+| Encryption | Read input texts | 1113 |
+| | Setup | 0.19 |
+| | Encode | 15778 |
+| | Encrypt | 12252 |
+| | Write ciphertexts | 18561 |
+
+**Per-run steps**
+
+| Phase | Step | Run 1 | Run 2 | Run 3 |
+| --- | --- | ---: | ---: | ---: |
+| Compute | Read relin key | 3.9 | 3.8 | 3.8 |
+| | Setup | 68.9 | 70.97 | 71.1 |
+| | Read ciphertexts | 16093 | 16331 | 16421 |
+| | Compute | 6586 | 6544 | 6617 |
+| | Write result ciphertexts | 42758 | 201392 | 224175 |
+| Decryption | Read secret key | 0.15 | 0.16 | 0.17 |
+| | Setup | 0.008 | 0.008 | 0.006 |
+| | Read result ciphertexts | 7419 | 7226 | 7082 |
+| | Decrypt | 3381 | 3404 | 3348 |
+| | Decode | 7749 | 8356 | 7726 |
+| | Write output text | 801 | 570 | 571 |
 
 ## Execution Modes
 
