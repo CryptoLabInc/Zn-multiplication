@@ -4,15 +4,25 @@
 // This software is licensed under the terms of the Apache v2 License.
 // See the LICENSE.md file for details.
 
+use indexmap::IndexMap;
 use std::env;
 use std::path::Path;
 use std::fs;
+use std::time::Instant;
+use serde_json;
 
 use tfhe::{ FheUint64, set_server_key, ServerKey };
 
 use zn_multiplication::half_cipher_cipher_mul_64;
 
+fn get_runtime(t: &Instant) -> String {
+    format!("{:.3}", (t.elapsed().as_nanos() as f64) * 1e-9)
+}
+
+
 pub fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let time_start_server = Instant::now();
+    
     // Get the number of inputs from the first argument
     let args: Vec<String> = env::args().collect();
     if args.len() < 3 {
@@ -22,6 +32,10 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let size = args[1].clone();
     let data_size = args[2].parse::<usize>()?;
     let io_dir = "io/".to_owned() + &size;
+    let report_path = io_dir.clone() + "/server_reported_steps.json";
+
+    // Map to store profiling results
+    let mut runtime_steps = IndexMap::new();
 
     // Load the server key
     let serialised_data = fs::read(io_dir.clone() + "/public_keys/pk.bin")?;
@@ -33,16 +47,21 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     let ciphers_lhs = (0 .. data_size).map(|i|
         bincode::deserialize::<FheUint64>(&fs::read(ciphertexts_in_dir.clone() + "/cipher_lhs_" + &i.to_string() + ".bin")?)
     ).collect::<Result<Vec<FheUint64>, Box<bincode::ErrorKind>>>()?;
+
     
     // Load the RHS input ciphers
     let ciphers_rhs = (0 .. data_size).map(|i|
         bincode::deserialize::<FheUint64>(&fs::read(ciphertexts_in_dir.clone() + "/cipher_rhs_" + &i.to_string() + ".bin")?)
     ).collect::<Result<Vec<FheUint64>, Box<bincode::ErrorKind>>>()?;
-
+    
     // Run the homomorphic multiplications
+    let time_start = Instant::now();
     let ciphers_out = ciphers_lhs.iter().zip(ciphers_rhs.iter())
                                  .map(|(lhs, rhs)| half_cipher_cipher_mul_64(lhs, rhs))
                                  .collect::<Vec<FheUint64>>();
+    
+    runtime_steps.insert("Encrypted computation".to_string(),
+                         get_runtime(&time_start));
 
     // Write the results
     let ciphertexts_out_dir = io_dir.clone() + "/ciphertexts_download";
@@ -52,6 +71,14 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     for (i, cipher) in ciphers_out.iter().enumerate() {
         fs::write(ciphertexts_out_dir.clone() + "/cipher_out_" + &i.to_string() + ".bin", &bincode::serialize(&cipher)?)?
     }
+    
+    //Total server runtime
+    runtime_steps.insert("Total".to_string(),
+                         get_runtime(&time_start_server));
+
+    // Write the report file
+    let json = serde_json::to_string_pretty(&runtime_steps)?;
+    fs::write(report_path, json)?;
 
     Ok(())
 }

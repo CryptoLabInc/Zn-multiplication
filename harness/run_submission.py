@@ -104,7 +104,8 @@ def main() -> int:
         # 9. Store measurements
         run_path = params.measuredir() / f"results-{run+1}.json"
         run_path.parent.mkdir(parents=True, exist_ok=True)
-        utils.save_run(run_path)
+        submission_report_path = io_dir / "server_reported_steps.json"
+        utils.save_run(run_path, submission_report_path)
 
     print(f"\nAll steps completed for the {test} dataset!")
     return 0

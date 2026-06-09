@@ -30,6 +30,7 @@ class TextFormat:
     GREEN = "\033[32m"
     YELLOW = "\033[33m"
     BLUE = "\033[34m"
+    PURPLE = "\033[35m"
     RED = "\033[31m"
     RESET = "\033[0m"
 
@@ -126,16 +127,28 @@ def log_size(path: Path, object_name: str, flag: bool = False, previous: int = 0
     _bandwidth[object_name] = human_readable_size(size)
     return size
 
-def save_run(path: Path):
+def save_run(path: Path, submission_report_path: Path):
     global _timestamps
     global _timestampsStr
     global _bandwidth
 
     _timestampsStr["Total"] = f"{round(sum(_timestamps.values()), 4)}s"
-    
+    _timestampsReported = {} 
+    if submission_report_path.exists():
+        with open(submission_report_path, "r") as f:
+            server_reported_times = json.load(f)
+            print(f"{TextFormat.GREEN}         [submission] Server reported steps: {server_reported_times}{TextFormat.RESET}")
+            for step_name, time_str in server_reported_times.items():
+                _timestampsReported[step_name] = f"{time_str}s"
+                print(f"{TextFormat.PURPLE}         [submission] {step_name}: {time_str}s{TextFormat.RESET}")
+    else:
+        print(f"{TextFormat.PURPLE}         [harness] Note: Submitters can specify Server reported steps file at {submission_report_path}{TextFormat.RESET}")
+
+
     json.dump({
         "Timing": _timestampsStr,
         "Bandwidth": _bandwidth,
+        "Server Reported": _timestampsReported,
     }, open(path,"w"), indent=2)
 
     print("[total latency]", f"{round(sum(_timestamps.values()), 4)}s")
