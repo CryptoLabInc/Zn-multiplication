@@ -1,7 +1,11 @@
 #include "BenchmarkUtils.hpp"
 #include "WordEncoder.hpp"
 
+#include <fstream>
+#include <iomanip>
 #include <iostream>
+#include <utility>
+#include <vector>
 
 int main(int argc, char **argv) {
   std::string instance;
@@ -17,10 +21,17 @@ int main(int argc, char **argv) {
 
   auto io = ioDir(instance);
 
+  // Step timings reported back to the harness via server_reported_steps.json
+  std::vector<std::pair<std::string, double>> reported_steps;
+  auto report_step = [&](const char *label, double ms) {
+    log_time(label, ms);
+    reported_steps.emplace_back(label, ms / 1000.0);
+  };
+
   auto t_read_key = Clock::now();
   auto relin_key = serial::loadAsPtr<ISwKey>(
       (io / "public_keys" / "relin_key.bin").string());
-  log_time("Read relin key", elapsed_ms(t_read_key));
+  report_step("Read relinearization key", elapsed_ms(t_read_key));
 
   auto t_setup = Clock::now();
   // Build the fixed reduction plaintext t(X) = -2 + X at each word slot.
@@ -49,7 +60,7 @@ int main(int argc, char **argv) {
 
   HomEval eval(params.eval_params);
   HomEvalFlexible eval_flex;
-  log_time("Setup", elapsed_ms(t_setup));
+  report_step("Setup", elapsed_ms(t_setup));
 
   ensureDir(io / "ciphertexts_download");
 
@@ -81,8 +92,18 @@ int main(int argc, char **argv) {
     total_write_ms += elapsed_ms(t_wr);
   }
 
-  log_time("Read ciphertexts", total_read_ms);
-  log_time("Compute", total_compute_ms);
-  log_time("Write result ciphertexts", total_write_ms);
+  report_step("Read ciphertexts", total_read_ms);
+  report_step("Compute", total_compute_ms);
+  report_step("Write result ciphertexts", total_write_ms);
+
+  // Write the step timings (in seconds) for the harness to pick up.
+  std::ofstream report(io / "server_reported_steps.json");
+  report << std::fixed << std::setprecision(4) << "{\n";
+  for (size_t i = 0; i < reported_steps.size(); ++i) {
+    report << "  \"" << reported_steps[i].first
+           << "\": " << reported_steps[i].second
+           << (i + 1 < reported_steps.size() ? ",\n" : "\n");
+  }
+  report << "}\n";
   return 0;
 }
