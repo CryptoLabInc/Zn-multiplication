@@ -1,17 +1,24 @@
 {
   "Timing": {
-    "Input generation": "0.0925s",
-    "Input preprocessing": "0.0006s",
-    "Key Generation": "0.0161s",
-    "Input encryption": "0.0244s",
-    "Encrypted computation": "0.0557s",
-    "Result decryption": "0.0158s",
-    "Result postprocessing": "0.0006s",
-    "Total": "0.2056s"
+    "Input generation": "0.1045s",
+    "Input preprocessing": "0.0007s",
+    "Key Generation": "0.0154s",
+    "Input encryption": "0.0261s",
+    "Encrypted computation": "0.0777s",
+    "Result decryption": "0.0187s",
+    "Result postprocessing": "0.0005s",
+    "Total": "0.2436s"
   },
   "Bandwidth": {
     "Public and evaluation keys": "1.5M",
     "Encrypted input": "4.0M",
     "Encrypted results": "2.0M"
+  },
+  "Server Reported": {
+    "Read relinearization key": "0.0211s",
+    "Setup": "0.0202s",
+    "Read ciphertexts": "0.0018s",
+    "Compute": "0.0125s",
+    "Write result ciphertexts": "0.0008s"
   }
 }
