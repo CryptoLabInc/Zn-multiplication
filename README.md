@@ -15,29 +15,29 @@ All times are in milliseconds (ms).
 
 | Phase | Step | |
 | --- | --- | ---: |
-| KeyGen | Compute | 13.5 |
+| KeyGen | Compute | 13.4 |
 | | Write | 0.45 |
 | Encryption | Read input texts | 0.04 |
-| | Setup | 0.14 |
-| | Encode | 13.5 |
-| | Encrypt | 5.3 |
-| | Write ciphertexts | 1.1 |
+| | Setup | 0.15 |
+| | Encode | 14.5 |
+| | Encrypt | 6.2 |
+| | Write ciphertexts | 1.2 |
 
 **Per-run steps**
 
 | Phase | Step | Run 1 | Run 2 | Run 3 |
 | --- | --- | ---: | ---: | ---: |
-| Compute | Read relin key | 3.3 | 4.4 | 3.3 |
-| | Setup | 20.6 | 20.0 | 21.7 |
-| | Read ciphertexts | 1.4 | 1.3 | 1.1 |
-| | Compute | 10.6 | 10.3 | 10.5 |
-| | Write result ciphertexts | 0.61 | 0.67 | 0.58 |
-| Decryption | Read secret key | 0.12 | 0.14 | 0.10 |
-| | Setup | 0.007 | 0.007 | 0.006 |
-| | Read result ciphertexts | 0.66 | 0.68 | 0.52 |
-| | Decrypt | 5.1 | 5.2 | 4.4 |
-| | Decode | 5.3 | 5.5 | 5.6 |
-| | Write output text | 0.003 | 0.003 | 0.002 |
+| Compute | Read relin key | 4.02 | 4.27 | 4.15 |
+| | Setup | 16.32 | 20.73 | 17.76 |
+| | Read ciphertexts | 1.62 | 1.87 | 1.55 |
+| | Compute | 12.42 | 13.17 | 13.15 |
+| | Write result ciphertexts | 0.68 | 0.75 | 0.68 |
+| Decryption | Read secret key | 0.14 | 0.12 | 0.10 |
+| | Setup | 0.007 | 0.006 | 0.005 |
+| | Read result ciphertexts | 0.84 | 0.65 | 0.56 |
+| | Decrypt | 5.60 | 5.93 | 5.40 |
+| | Decode | 6.45 | 6.98 | 6.10 |
+| | Write output text | 0.003 | 0.004 | 0.003 |
 
 ### Small Instances
 
@@ -45,29 +45,29 @@ All times are in milliseconds (ms).
 
 | Phase | Step | Time (ms) |
 | --- | --- | ---: |
-| KeyGen | Compute | 13.7 |
-| | Write | 0.43 |
-| Encryption | Read input texts | 0.17 |
-| | Setup | 0.13 |
-| | Encode | 14.2 |
-| | Encrypt | 5.3 |
-| | Write ciphertexts | 1.1 |
+| KeyGen | Compute | 13.3 |
+| | Write | 0.36 |
+| Encryption | Read input texts | 0.18 |
+| | Setup | 0.15 |
+| | Encode | 15.1 |
+| | Encrypt | 6.4 |
+| | Write ciphertexts | 1.0 |
 
 **Per-run steps**
 
 | Phase | Step | Run 1 | Run 2 | Run 3 |
 | --- | --- | ---: | ---: | ---: |
-| Compute | Read relin key | 3.4 | 3.5 | 3.1 |
-| | Setup | 19.9 | 21.1 | 20.6 |
-| | Read ciphertexts | 1.8 | 1.4 | 1.2 |
-| | Compute | 10.1 | 10.4 | 10.4 |
-| | Write result ciphertexts | 0.62 | 0.68 | 0.59 |
-| Decryption | Read secret key | 0.12 | 0.11 | 0.11 |
-| | Setup | 0.006 | 0.006 | 0.004 |
-| | Read result ciphertexts | 0.68 | 0.53 | 0.51 |
-| | Decrypt | 5.09 | 5.03 | 5.34 |
-| | Decode | 5.9 | 5.8 | 6.57 |
-| | Write output text | 0.07 | 0.07 | 0.07 |
+| Compute | Read relin key | 4.17 | 4.25 | 4.12 |
+| | Setup | 16.92 | 20.29 | 19.37 |
+| | Read ciphertexts | 1.57 | 1.71 | 1.66 |
+| | Compute | 12.59 | 13.45 | 13.13 |
+| | Write result ciphertexts | 0.59 | 0.68 | 0.67 |
+| Decryption | Read secret key | 0.15 | 0.13 | 0.11 |
+| | Setup | 0.007 | 0.007 | 0.006 |
+| | Read result ciphertexts | 0.81 | 0.72 | 0.71 |
+| | Decrypt | 5.66 | 5.61 | 6.35 |
+| | Decode | 7.11 | 7.39 | 7.46 |
+| | Write output text | 0.09 | 0.10 | 0.09 |
 
 ### Medium Instances
 
@@ -75,29 +75,29 @@ All times are in milliseconds (ms).
 
 | Phase | Step | Time (ms) |
 | --- | --- | ---: |
-| KeyGen | Compute | 13.1 |
-| | Write | 0.45 |
-| Encryption | Read input texts | 11.8 |
-| | Setup | 0.15 |
-| | Encode | 218 |
-| | Encrypt | 160 |
-| | Write ciphertexts | 219 |
+| KeyGen | Compute | 13.4 |
+| | Write | 0.51 |
+| Encryption | Read input texts | 12.5 |
+| | Setup | 0.17 |
+| | Encode | 207.7 |
+| | Encrypt | 166.4 |
+| | Write ciphertexts | 226.5 |
 
 **Per-run steps**
 
 | Phase | Step | Run 1 | Run 2 | Run 3 |
 | --- | --- | ---: | ---: | ---: |
-| Compute | Read relin key | 3.6 | 3.8 | 3.8 |
-| | Setup | 65.6 | 66 | 65.8 |
-| | Read ciphertexts | 200 | 201 | 202 |
-| | Compute | 94.3 | 88.7 | 91.3 |
-| | Write result ciphertexts | 129 | 951 | 1340 |
-| Decryption | Read secret key | 0.15 | 0.14 | 0.16 |
-| | Setup | 0.005 | 0.008 | 0.008 |
-| | Read result ciphertexts | 96.1 | 92.0 | 102 |
-| | Decrypt | 67.66 | 52.11 | 52.54 |
-| | Decode | 102.77 | 105.7 | 104.74 |
-| | Write output text | 5.7 | 5.7 | 5.7 |
+| Compute | Read relin key | 4.41 | 4.51 | 4.35 |
+| | Setup | 63.9 | 64.5 | 65.5 |
+| | Read ciphertexts | 208.1 | 207.4 | 207.4 |
+| | Compute | 92.9 | 91.5 | 91.3 |
+| | Write result ciphertexts | 131.6 | 950.3 | 1333.4 |
+| Decryption | Read secret key | 0.14 | 0.14 | 0.14 |
+| | Setup | 0.006 | 0.007 | 0.008 |
+| | Read result ciphertexts | 102.2 | 96.8 | 105.9 |
+| | Decrypt | 59.2 | 84.3 | 58.9 |
+| | Decode | 86.9 | 77.6 | 83.0 |
+| | Write output text | 7.0 | 6.9 | 6.9 |
 
 ### Large Instances
 
@@ -105,29 +105,29 @@ All times are in milliseconds (ms).
 
 | Phase | Step | Time (ms) |
 | --- | --- | ---: |
-| KeyGen | Compute | 15.5 |
-| | Write | 0.53 |
-| Encryption | Read input texts | 1113 |
-| | Setup | 0.19 |
-| | Encode | 15778 |
-| | Encrypt | 12252 |
-| | Write ciphertexts | 18561 |
+| KeyGen | Compute | 14.2 |
+| | Write | 0.52 |
+| Encryption | Read input texts | 1117.6 |
+| | Setup | 0.20 |
+| | Encode | 14540 |
+| | Encrypt | 12718 |
+| | Write ciphertexts | 18157 |
 
 **Per-run steps**
 
 | Phase | Step | Run 1 | Run 2 | Run 3 |
 | --- | --- | ---: | ---: | ---: |
-| Compute | Read relin key | 3.9 | 3.8 | 3.8 |
-| | Setup | 68.9 | 70.97 | 71.1 |
-| | Read ciphertexts | 16093 | 16331 | 16421 |
-| | Compute | 6586 | 6544 | 6617 |
-| | Write result ciphertexts | 42758 | 201392 | 224175 |
-| Decryption | Read secret key | 0.15 | 0.16 | 0.17 |
-| | Setup | 0.008 | 0.008 | 0.006 |
-| | Read result ciphertexts | 7419 | 7226 | 7082 |
-| | Decrypt | 3381 | 3404 | 3348 |
-| | Decode | 7749 | 8356 | 7726 |
-| | Write output text | 801 | 570 | 571 |
+| Compute | Read relin key | 4.41 | 16.07 | 4.41 |
+| | Setup | 63.1 | 64.7 | 63.9 |
+| | Read ciphertexts | 15912 | 15976 | 16252 |
+| | Compute | 5937 | 6169 | 6177 |
+| | Write result ciphertexts | 42594 | 207179 | 221982 |
+| Decryption | Read secret key | 0.14 | 0.14 | 0.17 |
+| | Setup | 0.008 | 0.006 | 0.007 |
+| | Read result ciphertexts | 7132 | 7069 | 7155 |
+| | Decrypt | 3662 | 3656 | 3539 |
+| | Decode | 6591 | 6755 | 6535 |
+| | Write output text | 902 | 693 | 695 |
 
 ## Execution Modes
 
