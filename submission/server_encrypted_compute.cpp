@@ -31,7 +31,8 @@ int main(int argc, char **argv) {
   auto t_read_key = Clock::now();
   auto relin_key = serial::loadAsPtr<ISwKey>(
       (io / "public_keys" / "relin_key.bin").string());
-  report_step("Read relinearization key", elapsed_ms(t_read_key));
+  double t_read_key_ms = elapsed_ms(t_read_key);
+  report_step("Read relinearization key", t_read_key_ms);
 
   auto t_setup = Clock::now();
   // Build the fixed reduction plaintext t(X) = -2 + X at each word slot.
@@ -60,11 +61,12 @@ int main(int argc, char **argv) {
 
   HomEval eval(params.eval_params);
   HomEvalFlexible eval_flex;
-  report_step("Setup", elapsed_ms(t_setup));
+  double t_setup_ms = elapsed_ms(t_setup);
+  report_step("Setup", t_setup_ms);
 
   ensureDir(io / "ciphertexts_download");
 
-  double total_read_ms = 0, total_compute_ms = 0, total_write_ms = 0;
+  double t_read_ctxts_ms = 0, t_enc_compute_ms = 0, t_write_ctxts_ms = 0;
 
   for (u32 c = 0; c < num_cts; ++c) {
     auto t_rd = Clock::now();
@@ -74,7 +76,7 @@ int main(int argc, char **argv) {
     auto ctxt1 = serial::loadAsPtr<ICiphertext>(
         (io / "ciphertexts_upload" / ("ctxt1_" + std::to_string(c) + ".bin"))
             .string());
-    total_read_ms += elapsed_ms(t_rd);
+    t_read_ctxts_ms += elapsed_ms(t_rd);
 
     auto t_comp = Clock::now();
     auto res = ICiphertext::make(getEncType(batch_size));
@@ -82,19 +84,21 @@ int main(int argc, char **argv) {
     eval.relin(*res, *relin_key);
     eval.mul(*res, *t_ptxt, *res);
     eval_flex.rescale(*res, *res, params.eval_params.getLevels().mods[0]);
-    total_compute_ms += elapsed_ms(t_comp);
+    t_enc_compute_ms += elapsed_ms(t_comp);
 
     auto t_wr = Clock::now();
     serial::save(
         (io / "ciphertexts_download" / ("res_" + std::to_string(c) + ".bin"))
             .string(),
         *res);
-    total_write_ms += elapsed_ms(t_wr);
+    t_write_ctxts_ms += elapsed_ms(t_wr);
   }
 
-  report_step("Read ciphertexts", total_read_ms);
-  report_step("Compute", total_compute_ms);
-  report_step("Write result ciphertexts", total_write_ms);
+  report_step("Read ciphertexts", t_read_ctxts_ms);
+  report_step("Encrypted computation", t_enc_compute_ms);
+  report_step("Write result ciphertexts", t_write_ctxts_ms);
+  report_step("Total", t_read_ctxts_ms + t_setup_ms + t_read_key_ms +
+                           t_enc_compute_ms + t_write_ctxts_ms);
 
   // Write the step timings (in seconds) for the harness to pick up.
   std::ofstream report(io / "server_reported_steps.json");
