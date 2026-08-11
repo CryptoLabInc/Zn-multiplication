@@ -24,13 +24,13 @@ getParamsSet(const std::string &instance,
   u32 log_degree, hw, max_secure_bits;
   if (instance == "single") {
     log_degree = 12;
-    hw = 1024;
-    max_secure_bits = 111;
+    hw = 0; // hw = 0 means uniform ternary
+    max_secure_bits = 106;
   } else if (instance == "small" || instance == "medium" ||
              instance == "large") {
     log_degree = 16;
     hw = 32;
-    max_secure_bits = 349;
+    max_secure_bits = 328;
   } else {
     throw std::runtime_error("unknown instance: " + instance);
   }
@@ -45,9 +45,10 @@ getParamsSet(const std::string &instance,
   SKGenParams skgen_params(log_degree, hw);
 
   // Modulus Chain Construction
+  u32 base_modulus_bits = (log_degree == 12) ? 20 : 25;
   paramsUtils::LevelsBuilder levels_builder;
   levels_builder.setRing(log_degree, poly_type, false);
-  levels_builder.initMod(25);
+  levels_builder.initMod(base_modulus_bits);
   auto eval_levels = levels_builder.buildAbove(2, 15);
   auto &ecd_mod = eval_levels.mods.back();
 
