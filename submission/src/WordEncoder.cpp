@@ -51,6 +51,38 @@ inline void toCoeffsOverT(u64 word, Real *arith) {
   for (size_t j = 1; j < BIT_WIDTH; ++j)
     arith[j] = -static_cast<Real>(word & masks[j]) * inv_scales[j];
 }
+
+inline void forwardMatvec(const Real *__restrict a, Real *__restrict out_re,
+                          Real *__restrict out_im) {
+  const auto &forwardReal = WORD_ARITH_CONSTANT.forwardReal;
+  const auto &forwardImag = WORD_ARITH_CONSTANT.forwardImag;
+  for (size_t i = 0; i < HALF_BIT_WIDTH; ++i)
+    out_re[i] = out_im[i] = 0;
+  for (size_t j = 0; j < BIT_WIDTH; ++j) {
+    Real aj = a[j];
+    const Real *fr = forwardReal[j].data();
+    const Real *fi = forwardImag[j].data();
+    for (size_t i = 0; i < HALF_BIT_WIDTH; ++i) {
+      out_re[i] += fr[i] * aj;
+      out_im[i] += fi[i] * aj;
+    }
+  }
+}
+
+inline void backwardMatvec(const Real *__restrict re, const Real *__restrict im,
+                           Real *__restrict out) {
+  const auto &backwardReal = WORD_ARITH_CONSTANT.backwardReal;
+  const auto &backwardImag = WORD_ARITH_CONSTANT.backwardImag;
+  for (size_t i = 0; i < BIT_WIDTH; ++i)
+    out[i] = 0;
+  for (size_t j = 0; j < HALF_BIT_WIDTH; ++j) {
+    Real mr = re[j], mi = im[j];
+    const Real *br = backwardReal[j].data();
+    const Real *bi = backwardImag[j].data();
+    for (size_t i = 0; i < BIT_WIDTH; ++i)
+      out[i] += br[i] * mr - bi[i] * mi;
+  }
+}
 } // namespace
 
 WordEncodeParams &WordEncodeParams::setLogDegree(u32 log_degree) {
@@ -103,7 +135,7 @@ void WordEncoder::arithToWord(const Message &arith,
 
     u64 word = 0;
     for (size_t i = 0; i < BIT_WIDTH; ++i) {
-      const i32 coeff = static_cast<i32>(std::lround(2.0 * tmp[i]));
+      const i32 coeff = static_cast<i32>(std::lrint(2.0 * tmp[i]));
       word += static_cast<u64>(coeff) << i;
     }
 
@@ -116,23 +148,20 @@ void WordEncoder::arithToComplex(const Message &arith, Message &msg) const {
   auto per_batch_complex_slots = num_words * HALF_BIT_WIDTH;
   auto per_batch_log_slots = log2ceil(per_batch_complex_slots);
 
-  const auto &forwardReal = WORD_ARITH_CONSTANT.forwardReal;
-  const auto &forwardImag = WORD_ARITH_CONSTANT.forwardImag;
-
   msg = Message(per_batch_log_slots);
   ZNMULT_PRAGMA_OMP_PARALLEL_FOR
   for (size_t w = 0; w < num_words; ++w) {
-    size_t arith_base = w * BIT_WIDTH;
-    size_t msg_base = w * HALF_BIT_WIDTH;
-    for (size_t i = 0; i < HALF_BIT_WIDTH; ++i) {
-      Real real = 0, imag = 0;
-      for (size_t j = 0; j < BIT_WIDTH; ++j) {
-        Real a = arith[arith_base + j].real();
-        real += forwardReal[i][j] * a;
-        imag += forwardImag[i][j] * a;
-      }
-      msg[msg_base + i] = Complex(real, imag);
-    }
+    const Complex *arith_ptr = &arith[w * BIT_WIDTH];
+    Real arith_buf[BIT_WIDTH];
+    for (size_t j = 0; j < BIT_WIDTH; ++j)
+      arith_buf[j] = arith_ptr[j].real();
+
+    Real real_acc[HALF_BIT_WIDTH], imag_acc[HALF_BIT_WIDTH];
+    forwardMatvec(arith_buf, real_acc, imag_acc);
+
+    Complex *msg_ptr = &msg[w * HALF_BIT_WIDTH];
+    for (size_t i = 0; i < HALF_BIT_WIDTH; ++i)
+      msg_ptr[i] = Complex(real_acc[i], imag_acc[i]);
   }
 }
 
@@ -141,25 +170,22 @@ void WordEncoder::complexToArith(const Message &msg, Message &ariths) const {
   auto num_slots = 1UL << log_slots;
   auto num_words = num_slots / HALF_BIT_WIDTH;
 
-  const auto &backwardReal = WORD_ARITH_CONSTANT.backwardReal;
-  const auto &backwardImag = WORD_ARITH_CONSTANT.backwardImag;
-
   ariths = Message(log_slots + 1);
-  Real msg_re[HALF_BIT_WIDTH], msg_im[HALF_BIT_WIDTH];
-  ZNMULT_PRAGMA_OMP_PARALLEL_FOR_ARGS(private(msg_re, msg_im))
+  ZNMULT_PRAGMA_OMP_PARALLEL_FOR
   for (size_t w = 0; w < num_words; ++w) {
-    size_t arith_base = w * BIT_WIDTH;
-    size_t msg_base = w * HALF_BIT_WIDTH;
+    const Complex *msg_ptr = &msg[w * HALF_BIT_WIDTH];
+    Real msg_re[HALF_BIT_WIDTH], msg_im[HALF_BIT_WIDTH];
     for (size_t j = 0; j < HALF_BIT_WIDTH; ++j) {
-      msg_re[j] = msg[msg_base + j].real();
-      msg_im[j] = msg[msg_base + j].imag();
+      msg_re[j] = msg_ptr[j].real();
+      msg_im[j] = msg_ptr[j].imag();
     }
-    for (size_t i = 0; i < BIT_WIDTH; ++i) {
-      Real real = 0;
-      for (size_t j = 0; j < HALF_BIT_WIDTH; ++j)
-        real += backwardReal[i][j] * msg_re[j] - backwardImag[i][j] * msg_im[j];
-      ariths[arith_base + i] = real;
-    }
+
+    Real acc[BIT_WIDTH];
+    backwardMatvec(msg_re, msg_im, acc);
+
+    Complex *arith_ptr = &ariths[w * BIT_WIDTH];
+    for (size_t i = 0; i < BIT_WIDTH; ++i)
+      arith_ptr[i] = acc[i];
   }
 }
 
@@ -176,27 +202,22 @@ void WordEncoder::wordToComplex(const std::vector<std::vector<u64>> &words,
   auto num_slots = num_words * HALF_BIT_WIDTH;
   auto log_slots = log2ceil(num_slots);
 
-  const auto &forwardReal = WORD_ARITH_CONSTANT.forwardReal;
-  const auto &forwardImag = WORD_ARITH_CONSTANT.forwardImag;
-
   msgs.resize(batch_size);
   for (auto &m : msgs)
     m = Message(log_slots);
 
-  Real arith_buf[BIT_WIDTH];
-  ZNMULT_PRAGMA_OMP_PARALLEL_FOR_ARGS(collapse(2) private(arith_buf))
+  ZNMULT_PRAGMA_OMP_PARALLEL_FOR_ARGS(collapse(2))
   for (size_t b = 0; b < batch_size; ++b) {
     for (size_t w = 0; w < num_words; ++w) {
+      Real arith_buf[BIT_WIDTH];
       toCoeffsOverT(words[b][w], arith_buf);
-      size_t msg_base = w * HALF_BIT_WIDTH;
-      for (size_t i = 0; i < HALF_BIT_WIDTH; ++i) {
-        Real real = 0, imag = 0;
-        for (size_t j = 0; j < BIT_WIDTH; ++j) {
-          real += forwardReal[i][j] * arith_buf[j];
-          imag += forwardImag[i][j] * arith_buf[j];
-        }
-        msgs[b][msg_base + i] = Complex(real, imag);
-      }
+
+      Real real_acc[HALF_BIT_WIDTH], imag_acc[HALF_BIT_WIDTH];
+      forwardMatvec(arith_buf, real_acc, imag_acc);
+
+      Complex *msg_ptr = &msgs[b][w * HALF_BIT_WIDTH];
+      for (size_t i = 0; i < HALF_BIT_WIDTH; ++i)
+        msg_ptr[i] = Complex(real_acc[i], imag_acc[i]);
     }
   }
 }
@@ -214,32 +235,22 @@ void WordEncoder::complexToWord(const std::vector<Message> &msgs,
 
   auto num_words = num_slots / HALF_BIT_WIDTH;
 
-  const auto &backwardReal = WORD_ARITH_CONSTANT.backwardReal;
-  const auto &backwardImag = WORD_ARITH_CONSTANT.backwardImag;
-
   words.resize(batch_size);
   for (auto &batch : words)
     batch.resize(num_words);
 
-  Real tmp[BIT_WIDTH];
-  Real msg_re[HALF_BIT_WIDTH], msg_im[HALF_BIT_WIDTH];
-  ZNMULT_PRAGMA_OMP_PARALLEL_FOR_ARGS(collapse(2) private(tmp, msg_re, msg_im))
+  ZNMULT_PRAGMA_OMP_PARALLEL_FOR_ARGS(collapse(2))
   for (size_t b = 0; b < batch_size; ++b) {
     for (size_t w = 0; w < num_words; ++w) {
-      size_t msg_base = w * HALF_BIT_WIDTH;
-
+      const Complex *msg_ptr = &msgs[b][w * HALF_BIT_WIDTH];
+      Real msg_re[HALF_BIT_WIDTH], msg_im[HALF_BIT_WIDTH];
       for (size_t j = 0; j < HALF_BIT_WIDTH; ++j) {
-        msg_re[j] = msgs[b][msg_base + j].real();
-        msg_im[j] = msgs[b][msg_base + j].imag();
+        msg_re[j] = msg_ptr[j].real();
+        msg_im[j] = msg_ptr[j].imag();
       }
 
-      for (size_t i = 0; i < BIT_WIDTH; ++i) {
-        Real sum_re = 0;
-        for (size_t j = 0; j < HALF_BIT_WIDTH; ++j)
-          sum_re +=
-              backwardReal[i][j] * msg_re[j] - backwardImag[i][j] * msg_im[j];
-        tmp[i] = sum_re;
-      }
+      Real tmp[BIT_WIDTH];
+      backwardMatvec(msg_re, msg_im, tmp);
 
       // arithToWord
       Real coeffs[BIT_WIDTH];
@@ -251,7 +262,7 @@ void WordEncoder::complexToWord(const std::vector<Message> &msgs,
 
       u64 word = 0;
       for (size_t i = 0; i < BIT_WIDTH; ++i) {
-        const i32 coeff = static_cast<i32>(std::lround(2.0 * coeffs[i]));
+        const i32 coeff = static_cast<i32>(std::lrint(2.0 * coeffs[i]));
         word += static_cast<u64>(coeff) << i;
       }
 

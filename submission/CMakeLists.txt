@@ -40,9 +40,13 @@ target_include_directories(Zn-multiplication PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/
 
 target_link_libraries(Zn-multiplication PUBLIC OpenMP::OpenMP_CXX)
 
+set(ZNMULT_OPT_FLAGS -O3 -march=native -funroll-loops)
+target_compile_options(Zn-multiplication PRIVATE ${ZNMULT_OPT_FLAGS})
+
 macro(add_target executable_name_ dir_ name_)
   add_executable(${executable_name_} ${dir_}/${name_}.cpp)
   target_link_libraries(${executable_name_} PRIVATE Zn-multiplication)
+  target_compile_options(${executable_name_} PRIVATE ${ZNMULT_OPT_FLAGS})
 endmacro()
 
 add_target(client_preprocess_input . client_preprocess_input)

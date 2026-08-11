@@ -1,5 +1,8 @@
 #include "BenchmarkUtils.hpp"
+#include "ParallelSchedule.hpp"
 #include "WordEncoder.hpp"
+
+#include <charconv>
 
 int main(int argc, char **argv) {
   std::string instance;
@@ -21,58 +24,75 @@ int main(int argc, char **argv) {
   log_time("Read secret key", elapsed_ms(t_read_sk));
 
   auto t_setup = Clock::now();
-  EnDecryptor encryptor(params.enc_params);
-  EnDecoder encoder(params.ecd_params);
-
   WordEncodeParams word_ecd_params;
   word_ecd_params.setLogDegree(log_degree);
   word_ecd_params.setBatchSize(batch_size);
-  WordEncoder word_encoder(word_ecd_params);
   log_time("Setup", elapsed_ms(t_setup));
 
   auto out_dir = io / "cleartext_output";
   ensureDir(out_dir);
-  std::ofstream os(out_dir / "out.txt");
-  if (!os)
-    throw std::runtime_error("cannot write cleartext output");
 
-  double total_read_ms = 0, total_decrypt_ms = 0, total_decode_ms = 0,
-         total_write_ms = 0;
+  const u64 words_per_ct = static_cast<u64>(batch_size) * num_words;
 
-  u64 emitted = 0;
-  for (u32 c = 0; c < num_cts && emitted < num_target_words; ++c) {
-    auto t_rd = Clock::now();
+  std::vector<std::string> out_bufs(num_cts);
+  auto process_ct = [&](u32 c, EnDecryptor &encryptor, EnDecoder &encoder,
+                        WordEncoder &word_encoder) {
+    const u64 start = static_cast<u64>(c) * words_per_ct;
+    if (start >= num_target_words)
+      return; // this ciphertext contributes no output
+    const u64 cnt = std::min<u64>(words_per_ct, num_target_words - start);
+
     auto ctxt = serial::loadAsPtr<ICiphertext>(
         (io / "ciphertexts_download" / ("res_" + std::to_string(c) + ".bin"))
             .string());
-    total_read_ms += elapsed_ms(t_rd);
-
-    auto t_dec = Clock::now();
     auto ptxt = IPlaintext::make(getPtxtType(batch_size));
     encryptor.decrypt(*ctxt, *sk, *ptxt);
-    total_decrypt_ms += elapsed_ms(t_dec);
 
-    auto t_decode = Clock::now();
     std::vector<Message> msgs;
     decodeBatch(encoder, *ptxt, msgs, batch_size);
-
     std::vector<std::vector<u64>> words;
     word_encoder.complexToWord(msgs, words);
-    total_decode_ms += elapsed_ms(t_decode);
 
-    auto t_wr = Clock::now();
-    for (u32 b = 0; b < batch_size && emitted < num_target_words; ++b) {
-      for (u32 w = 0; w < num_words && emitted < num_target_words; ++w) {
-        os << words[b][w] << "\n";
+    std::string &buf = out_bufs[c];
+    buf.reserve(static_cast<size_t>(cnt) * 21);
+    char tmp[24];
+    u64 emitted = 0;
+    for (u32 b = 0; b < batch_size && emitted < cnt; ++b) {
+      for (u32 w = 0; w < num_words && emitted < cnt; ++w) {
+        auto [ptr, ec] = std::to_chars(tmp, tmp + sizeof(tmp), words[b][w]);
+        buf.append(tmp, static_cast<size_t>(ptr - tmp));
+        buf.push_back('\n');
         ++emitted;
       }
     }
-    total_write_ms += elapsed_ms(t_wr);
-  }
+  };
 
-  log_time("Read result ciphertexts", total_read_ms);
-  log_time("Decrypt", total_decrypt_ms);
-  log_time("Decode", total_decode_ms);
-  log_time("Write output text", total_write_ms);
+  struct Engines {
+    EnDecryptor encryptor;
+    EnDecoder encoder;
+    WordEncoder word_encoder;
+  };
+  auto t_loop = Clock::now();
+  runFheTasks(
+      num_cts, outerThreads(num_cts),
+      [&] {
+        return Engines{EnDecryptor(params.enc_params),
+                       EnDecoder(params.ecd_params),
+                       WordEncoder(word_ecd_params)};
+      },
+      [&](u32 c, Engines &e) {
+        process_ct(c, e.encryptor, e.encoder, e.word_encoder);
+      });
+  log_time("Decrypt+Decode", elapsed_ms(t_loop));
+
+  auto t_w = Clock::now();
+  std::ofstream os(out_dir / "out.txt", std::ios::binary);
+  if (!os)
+    throw std::runtime_error("cannot write cleartext output");
+  for (u32 c = 0; c < num_cts; ++c)
+    if (!out_bufs[c].empty())
+      os.write(out_bufs[c].data(),
+               static_cast<std::streamsize>(out_bufs[c].size()));
+  log_time("Write output text", elapsed_ms(t_w));
   return 0;
 }

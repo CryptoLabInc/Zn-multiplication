@@ -87,19 +87,16 @@ WordArithConstant::WordArithConstant() {
     }
   }
 
-  // Populate split real/imag arrays for SIMD-friendly access
-  for (size_t i = 0; i < HALF_BIT_WIDTH; ++i) {
+  for (size_t i = 0; i < HALF_BIT_WIDTH; ++i)
     for (size_t j = 0; j < BIT_WIDTH; ++j) {
-      forwardReal[i][j] = forwardMatrix[i][j].real();
-      forwardImag[i][j] = forwardMatrix[i][j].imag();
+      forwardReal[j][i] = forwardMatrix[i][j].real();
+      forwardImag[j][i] = forwardMatrix[i][j].imag();
     }
-  }
-  for (size_t i = 0; i < BIT_WIDTH; ++i) {
+  for (size_t i = 0; i < BIT_WIDTH; ++i)
     for (size_t j = 0; j < HALF_BIT_WIDTH; ++j) {
-      backwardReal[i][j] = backwardMatrix[i][j].real();
-      backwardImag[i][j] = backwardMatrix[i][j].imag();
+      backwardReal[j][i] = backwardMatrix[i][j].real();
+      backwardImag[j][i] = backwardMatrix[i][j].imag();
     }
-  }
 }
 
 void WordArithConstant::findRoots() {
