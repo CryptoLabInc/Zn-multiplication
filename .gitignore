@@ -4,6 +4,10 @@ io
 harness/__pycache__
 submission/Cargo.lock
 submission/target
+submission/build
+
+# clangd index
+submission/.cache
 
 # Virtual environments
 virtualenv
