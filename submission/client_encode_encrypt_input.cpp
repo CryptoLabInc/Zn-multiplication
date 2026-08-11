@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
   parseArgs(argc, argv, "client_encode_encrypt_input", instance, batch_size);
   u64 num_target_words = dataSizeFromInstance(instance);
 
-  const auto params = getParamsSet();
+  const auto params = getParamsSet(instance);
   u32 log_degree = params.ecd_params.getLogDegree();
   u32 num_words = computeNumWords(params);
   u32 num_cts = computeNumCiphertexts(num_target_words, num_words, batch_size);

@@ -10,7 +10,7 @@ int main(int argc, char **argv) {
   std::string instance = argv[1];
 
   auto t0 = Clock::now();
-  const auto params = getParamsSet();
+  const auto params = getParamsSet(instance);
 
   auto sk = SKGenerator(params.skgen_params).genKey();
 
