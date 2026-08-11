@@ -1,12 +1,12 @@
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
-// Copyright (C) 2025-2026 Crypto Lab Inc.                                    //
+// Copyright (C) 2025-2026 CryptoLab, Inc.                                    //
 //                                                                            //
 // - This file is a part of HEaaN2 homomorphic encryption library.            //
 // - This header is provided for use with the HEaaN2 library and may be       //
 //   included in software that links against HEaaN2.                          //
 // - Redistribution or modification of this file, in whole or in part,        //
-//   is not permitted without prior written consent from Crypto Lab Inc.      //
+//   is not permitted without prior written consent from CryptoLab, Inc.      //
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
@@ -25,9 +25,10 @@ using KeyPtr = Ptr<ISwKey>;
 /// and PolyRing
 /// @details The keys are indexed by the rotation step. Indices are equivalent
 /// modulo the number of slots.
-struct HEAAN2_API RotKeyPtrs : public std::map<i32, KeyPtr> {
+struct HEAAN2_API RotKeyPtrs : public std::map<i32, KeyPtr>,
+                               public DeviceSpecific {
     RotKeyPtrs() = default;
-    ~RotKeyPtrs() = default;
+    ~RotKeyPtrs() override = default;
     RotKeyPtrs(const RotKeyPtrs &) = delete;
     RotKeyPtrs &operator=(const RotKeyPtrs &) = delete;
     RotKeyPtrs(RotKeyPtrs &&) = default;
@@ -67,18 +68,18 @@ struct HEAAN2_API RotKeyPtrs : public std::map<i32, KeyPtr> {
     /// @return Device of the keys.
     /// @throws if the RotKeyPtrs is empty.
     /// @throws if the keys in the RotKeyPtrs are on different devices.
-    Device device() const;
+    Device device() const override;
     /// @brief Copies the keys to the specified device.
     /// @param device Device where the keys are copied to.
     /// @throws if the RotKeyPtrs is empty.
-    void to(Device device);
+    void to(Device device) override;
 };
 
 /// @brief A struct holding multiple relinearization keys with varying
 /// GadgetDecomp and PolyRing
-struct HEAAN2_API KeyPtrBundle {
+struct HEAAN2_API KeyPtrBundle : public DeviceSpecific {
     KeyPtrBundle();
-    ~KeyPtrBundle() = default;
+    ~KeyPtrBundle() override = default;
     KeyPtrBundle(const KeyPtrBundle &) = delete;
     KeyPtrBundle &operator=(const KeyPtrBundle &) = delete;
     KeyPtrBundle(KeyPtrBundle &&) = default;
@@ -113,11 +114,11 @@ struct HEAAN2_API KeyPtrBundle {
     /// @return Device of the keys in the KeyPtrBundle.
     /// @throws if the KeyPtrBundle is empty.
     /// @throws if the keys in the KeyPtrBundle are on different devices.
-    Device device() const;
+    Device device() const override;
     /// @brief Copies the keys in the KeyPtrBundle to the specified device.
     /// @param device Device where the keys are copied to.
     /// @throws if the KeyPtrBundle is empty.
-    void to(Device device);
+    void to(Device device) override;
 
     Pimpl impl;
 };

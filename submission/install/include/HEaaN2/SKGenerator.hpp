@@ -1,12 +1,12 @@
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
-// Copyright (C) 2025-2026 Crypto Lab Inc.                                    //
+// Copyright (C) 2025-2026 CryptoLab, Inc.                                    //
 //                                                                            //
 // - This file is a part of HEaaN2 homomorphic encryption library.            //
 // - This header is provided for use with the HEaaN2 library and may be       //
 //   included in software that links against HEaaN2.                          //
 // - Redistribution or modification of this file, in whole or in part,        //
-//   is not permitted without prior written consent from Crypto Lab Inc.      //
+//   is not permitted without prior written consent from CryptoLab, Inc.      //
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
@@ -29,6 +29,8 @@ public:
     /// @param hw hamming weight of the secret key.
     /// @param ntt_alg The NTT algorithm (NORMAL/CYC_FOR_CI) used for the secret
     /// key generation.
+    /// @details If hw == 0, then the secret key is sampled with uniform ternary
+    /// distribution.
     SKGenParams(u32 log_degree, u32 hw,
                 NTTAlgorithm ntt_alg = NTTAlgorithm::NORMAL)
         : log_degree_(log_degree), hw_(hw), ntt_alg_(ntt_alg) {}

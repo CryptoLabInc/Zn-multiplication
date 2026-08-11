@@ -1,12 +1,12 @@
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
-// Copyright (C) 2025-2026 Crypto Lab Inc.                                    //
+// Copyright (C) 2025-2026 CryptoLab, Inc.                                    //
 //                                                                            //
 // - This file is a part of HEaaN2 homomorphic encryption library.            //
 // - This header is provided for use with the HEaaN2 library and may be       //
 //   included in software that links against HEaaN2.                          //
 // - Redistribution or modification of this file, in whole or in part,        //
-//   is not permitted without prior written consent from Crypto Lab Inc.      //
+//   is not permitted without prior written consent from CryptoLab, Inc.      //
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
@@ -54,6 +54,16 @@ struct HEAAN2_API ICiphertext : public DeviceSpecific {
     /// @details Encryption contains information about the power, rank, and
     /// number of secrets used in the encryption.
     virtual Encryption encryption() const = 0;
+
+    /// @brief Checks whether the ciphertext is in NTT (evaluation) form.
+    /// @return true if the ciphertext polynomials are in NTT form, false
+    /// otherwise.
+    virtual bool isNTT() const = 0;
+    /// @brief Gets the batch size of the ciphertext.
+    /// @return The number of ciphertexts packed into this ciphertext.
+    /// @details The batch size is 1 for RLWE ciphertexts and the number of
+    /// packed ciphertexts for BatchRLWE ciphertexts.
+    virtual u32 batchSize() const = 0;
 };
 
 } // namespace heaan
