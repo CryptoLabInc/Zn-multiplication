@@ -17,10 +17,10 @@ public:
   // N x (N/2) complex matrix (Complex, for non-fused path)
   std::array<std::array<Complex, HALF_BIT_WIDTH>, BIT_WIDTH> backwardMatrix;
 
-  std::array<std::array<Real, BIT_WIDTH>, HALF_BIT_WIDTH> forwardReal;
-  std::array<std::array<Real, BIT_WIDTH>, HALF_BIT_WIDTH> forwardImag;
-  std::array<std::array<Real, HALF_BIT_WIDTH>, BIT_WIDTH> backwardReal;
-  std::array<std::array<Real, HALF_BIT_WIDTH>, BIT_WIDTH> backwardImag;
+  std::array<std::array<Real, HALF_BIT_WIDTH>, BIT_WIDTH> forwardReal;
+  std::array<std::array<Real, HALF_BIT_WIDTH>, BIT_WIDTH> forwardImag;
+  std::array<std::array<Real, BIT_WIDTH>, HALF_BIT_WIDTH> backwardReal;
+  std::array<std::array<Real, BIT_WIDTH>, HALF_BIT_WIDTH> backwardImag;
 
   void findRoots();
 };

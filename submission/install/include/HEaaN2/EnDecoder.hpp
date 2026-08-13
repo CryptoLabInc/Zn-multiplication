@@ -1,12 +1,12 @@
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
-// Copyright (C) 2025-2026 Crypto Lab Inc.                                    //
+// Copyright (C) 2025-2026 CryptoLab, Inc.                                    //
 //                                                                            //
 // - This file is a part of HEaaN2 homomorphic encryption library.            //
 // - This header is provided for use with the HEaaN2 library and may be       //
 //   included in software that links against HEaaN2.                          //
 // - Redistribution or modification of this file, in whole or in part,        //
-//   is not permitted without prior written consent from Crypto Lab Inc.      //
+//   is not permitted without prior written consent from CryptoLab, Inc.      //
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
@@ -27,6 +27,7 @@ namespace heaan {
 /// - log_degree: log degree of the ring.
 /// - levels: The levels for encoding.
 /// - ntt_alg: The NTT algorithm (NORMAL/CYC_FOR_CI).
+/// - coeff_encoding: Whether to use coefficient encoding.
 struct HEAAN2_API EncodeParams {
 public:
     /// @brief Constructs EncodeParams with the specified parameters.
@@ -34,10 +35,12 @@ public:
     /// @param log_degree log degree of the ring.
     /// @param levels The levels.
     /// @param ntt_alg The NTT algorithm (NORMAL/CYC_FOR_CI).
+    /// @param coeff_encoding Whether to use coefficient encoding.
     EncodeParams(PolyType poly_type, u32 log_degree, const Levels &levels = {},
-                 NTTAlgorithm ntt_alg = NTTAlgorithm::NORMAL)
+                 NTTAlgorithm ntt_alg = NTTAlgorithm::NORMAL,
+                 bool coeff_encoding = false)
         : poly_type_(poly_type), log_degree_(log_degree), levels_(levels),
-          ntt_alg_(ntt_alg){};
+          ntt_alg_(ntt_alg), coeff_encoding_(coeff_encoding){};
 
     /// @brief Gets the polynomial type.
     /// @return The polynomial type.
@@ -51,12 +54,16 @@ public:
     /// @brief Gets the NTT algorithm.
     /// @return The NTT algorithm.
     NTTAlgorithm getNTTAlgorithm() const { return ntt_alg_; };
+    /// @brief Checks whether coefficient encoding is used.
+    /// @return True if coefficient encoding is used, false otherwise.
+    bool isCoeffEncoding() const { return coeff_encoding_; };
 
 private:
     PolyType poly_type_;
     u32 log_degree_;
     Levels levels_;
     NTTAlgorithm ntt_alg_;
+    bool coeff_encoding_;
 };
 
 /// @brief A class for encoding messages into plaintexts and decoding

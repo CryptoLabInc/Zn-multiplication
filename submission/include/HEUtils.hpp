@@ -8,7 +8,8 @@ static constexpr u32 BIT_WIDTH = 64;
 static constexpr PresetParamsId HARNESS_PRESET = PresetParamsId::S16_Gr;
 
 inline ParamsSet
-getParamsSet(std::optional<PresetParamsId> preset_id = std::nullopt) {
+getParamsSet(const std::string &instance,
+             std::optional<PresetParamsId> preset_id = std::nullopt) {
   if (preset_id.has_value())
     return makePresetParamsSet(preset_id.value());
 
@@ -20,7 +21,19 @@ getParamsSet(std::optional<PresetParamsId> preset_id = std::nullopt) {
   // be much smaller than max_secure_bits, depending on the specific parameters
   // chosen for the scheme. For example, the max log2(PQ) of the following
   // parameters is equal or less than 114.
-  u32 log_degree = 16, hw = 32, max_secure_bits = 349;
+  u32 log_degree, hw, max_secure_bits;
+  if (instance == "single") {
+    log_degree = 12;
+    hw = 0; // hw = 0 means uniform ternary
+    max_secure_bits = 106;
+  } else if (instance == "small" || instance == "medium" ||
+             instance == "large") {
+    log_degree = 16;
+    hw = 32;
+    max_secure_bits = 328;
+  } else {
+    throw std::runtime_error("unknown instance: " + instance);
+  }
 
   // With PolyType::GRAFTED, we are using the grafting technique,
   // introduced in https://eprint.iacr.org/2024/1014. This allows more flexible
@@ -32,9 +45,10 @@ getParamsSet(std::optional<PresetParamsId> preset_id = std::nullopt) {
   SKGenParams skgen_params(log_degree, hw);
 
   // Modulus Chain Construction
+  u32 base_modulus_bits = (log_degree == 12) ? 20 : 25;
   paramsUtils::LevelsBuilder levels_builder;
   levels_builder.setRing(log_degree, poly_type, false);
-  levels_builder.initMod(25);
+  levels_builder.initMod(base_modulus_bits);
   auto eval_levels = levels_builder.buildAbove(2, 15);
   auto &ecd_mod = eval_levels.mods.back();
 

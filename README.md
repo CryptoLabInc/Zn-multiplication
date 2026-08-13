@@ -1,8 +1,8 @@
 # FHE Benchmarking Suite - 64-bits multiplication
-This is a submission for the FHE benchmarking suite by CryptoLab Inc. using the scheme described in the paper [FHE for SIMD Arithmetic Logic Units with Amortized O(1) Bootstrapping per Ciphertext](https://eprint.iacr.org/2026/233).
+This is a submission for the FHE benchmarking suite by CryptoLab, Inc. using the scheme described in the paper [FHE for SIMD Arithmetic Logic Units with Amortized O(1) Bootstrapping per Ciphertext](https://eprint.iacr.org/2026/233).
 
 ## Benchmark Results
-The benchmark results were measured on **AWS EC2 i7ie.metal-24xl**. 
+The benchmark results were measured on **AWS EC2 i7ie.metal-24xl**.  
 
 We provide the results with step-by-step breakdown here because the harness does not separate the runtime of compute and I/O operations, and the latter may vary across the runs. 
 
@@ -13,31 +13,33 @@ All times are in milliseconds (ms).
 
 **Common steps** 
 
-| Phase | Step | |
+| Phase | Step | Time (ms) |
 | --- | --- | ---: |
-| KeyGen | Compute | 13.4 |
-| | Write | 0.45 |
-| Encryption | Read input texts | 0.04 |
-| | Setup | 0.15 |
-| | Encode | 14.5 |
-| | Encrypt | 6.2 |
-| | Write ciphertexts | 1.2 |
+| Input generation | | 118.0 |
+| Input preprocessing | | 0.7 |
+| KeyGen | | 7.0 |
+| Input encryption | | 7.7 |
+
+**Bandwidth**
+
+| Item | Size |
+| --- | ---: |
+| Public and evaluation keys | 54.0K |
+| Encrypted input | 100.2K |
+| Encrypted results | 20.1K |
 
 **Per-run steps**
 
 | Phase | Step | Run 1 | Run 2 | Run 3 |
 | --- | --- | ---: | ---: | ---: |
-| Compute | Read relin key | 4.02 | 4.27 | 4.15 |
-| | Setup | 16.32 | 20.73 | 17.76 |
-| | Read ciphertexts | 1.62 | 1.87 | 1.55 |
-| | Compute | 12.42 | 13.17 | 13.15 |
-| | Write result ciphertexts | 0.68 | 0.75 | 0.68 |
-| Decryption | Read secret key | 0.14 | 0.12 | 0.10 |
-| | Setup | 0.007 | 0.006 | 0.005 |
-| | Read result ciphertexts | 0.84 | 0.65 | 0.56 |
-| | Decrypt | 5.60 | 5.93 | 5.40 |
-| | Decode | 6.45 | 6.98 | 6.10 |
-| | Write output text | 0.003 | 0.004 | 0.003 |
+| Server | Initialization | 0.15 | 0.11 | 0.12 |
+| | Load public keys | 1.68 | 1.58 | 1.84 |
+| | Read inputs | 8.38 | 8.00 | 8.93 |
+| | Encrypted computation | 2.24 | 2.68 | 2.21 |
+| | Write outputs | 0.07 | 2.33 | 6.06 |
+| | **Total** | **12.55** | **14.72** | **19.19** |
+| Decryption | | 6.8 | 10.7 | 11.9 |
+| Postprocessing | | 0.5 | 0.5 | 0.5 |
 
 ### Small Instances
 
@@ -45,29 +47,31 @@ All times are in milliseconds (ms).
 
 | Phase | Step | Time (ms) |
 | --- | --- | ---: |
-| KeyGen | Compute | 13.3 |
-| | Write | 0.36 |
-| Encryption | Read input texts | 0.18 |
-| | Setup | 0.15 |
-| | Encode | 15.1 |
-| | Encrypt | 6.4 |
-| | Write ciphertexts | 1.0 |
+| Input generation | | 117.8 |
+| Input preprocessing | | 0.7 |
+| KeyGen | | 15.3 |
+| Input encryption | | 14.8 |
+
+**Bandwidth**
+
+| Item | Size |
+| --- | ---: |
+| Public and evaluation keys | 928.5K |
+| Encrypted input | 1.7M |
+| Encrypted results | 400.1K |
 
 **Per-run steps**
 
 | Phase | Step | Run 1 | Run 2 | Run 3 |
 | --- | --- | ---: | ---: | ---: |
-| Compute | Read relin key | 4.17 | 4.25 | 4.12 |
-| | Setup | 16.92 | 20.29 | 19.37 |
-| | Read ciphertexts | 1.57 | 1.71 | 1.66 |
-| | Compute | 12.59 | 13.45 | 13.13 |
-| | Write result ciphertexts | 0.59 | 0.68 | 0.67 |
-| Decryption | Read secret key | 0.15 | 0.13 | 0.11 |
-| | Setup | 0.007 | 0.007 | 0.006 |
-| | Read result ciphertexts | 0.81 | 0.72 | 0.71 |
-| | Decrypt | 5.66 | 5.61 | 6.35 |
-| | Decode | 7.11 | 7.39 | 7.46 |
-| | Write output text | 0.09 | 0.10 | 0.09 |
+| Server | Initialization | 0.16 | 0.11 | 0.10 |
+| | Load public keys | 3.56 | 4.50 | 3.34 |
+| | Read inputs | 12.66 | 9.34 | 9.00 |
+| | Encrypted computation | 9.01 | 9.56 | 8.70 |
+| | Write outputs | 0.26 | 1.97 | 4.04 |
+| | **Total** | **25.69** | **25.51** | **25.22** |
+| Decryption | | 12.1 | 16.9 | 16.0 |
+| Postprocessing | | 0.5 | 0.5 | 0.5 |
 
 ### Medium Instances
 
@@ -75,29 +79,31 @@ All times are in milliseconds (ms).
 
 | Phase | Step | Time (ms) |
 | --- | --- | ---: |
-| KeyGen | Compute | 13.4 |
-| | Write | 0.51 |
-| Encryption | Read input texts | 12.5 |
-| | Setup | 0.17 |
-| | Encode | 207.7 |
-| | Encrypt | 166.4 |
-| | Write ciphertexts | 226.5 |
+| Input generation | | 376.6 |
+| Input preprocessing | | 0.8 |
+| KeyGen | | 14.1 |
+| Input encryption | | 54.0 |
+
+**Bandwidth**
+
+| Item | Size |
+| --- | ---: |
+| Public and evaluation keys | 928.5K |
+| Encrypted input | 168.5M |
+| Encrypted results | 38.3M |
 
 **Per-run steps**
 
 | Phase | Step | Run 1 | Run 2 | Run 3 |
 | --- | --- | ---: | ---: | ---: |
-| Compute | Read relin key | 4.41 | 4.51 | 4.35 |
-| | Setup | 63.9 | 64.5 | 65.5 |
-| | Read ciphertexts | 208.1 | 207.4 | 207.4 |
-| | Compute | 92.9 | 91.5 | 91.3 |
-| | Write result ciphertexts | 131.6 | 950.3 | 1333.4 |
-| Decryption | Read secret key | 0.14 | 0.14 | 0.14 |
-| | Setup | 0.006 | 0.007 | 0.008 |
-| | Read result ciphertexts | 102.2 | 96.8 | 105.9 |
-| | Decrypt | 59.2 | 84.3 | 58.9 |
-| | Decode | 86.9 | 77.6 | 83.0 |
-| | Write output text | 7.0 | 6.9 | 6.9 |
+| Server | Initialization | 0.16 | 0.12 | 0.11 |
+| | Load public keys | 3.58 | 3.63 | 4.27 |
+| | Read inputs | 21.80 | 25.67 | 21.83 |
+| | Encrypted computation | 31.23 | 32.29 | 38.04 |
+| | Write outputs | 3.79 | 337.55 | 335.62 |
+| | **Total** | **60.62** | **399.31** | **399.93** |
+| Decryption | | 30.9 | 77.7 | 72.7 |
+| Postprocessing | | 0.7 | 0.7 | 0.7 |
 
 ### Large Instances
 
@@ -105,29 +111,31 @@ All times are in milliseconds (ms).
 
 | Phase | Step | Time (ms) |
 | --- | --- | ---: |
-| KeyGen | Compute | 14.2 |
-| | Write | 0.52 |
-| Encryption | Read input texts | 1117.6 |
-| | Setup | 0.20 |
-| | Encode | 14540 |
-| | Encrypt | 12718 |
-| | Write ciphertexts | 18157 |
+| Input generation | | 19258 |
+| Input preprocessing | | 0.8 |
+| KeyGen | | 16.9 |
+| Input encryption | | 1931.5 |
+
+**Bandwidth**
+
+| Item | Size |
+| --- | ---: |
+| Public and evaluation keys | 928.5K |
+| Encrypted input | 16.4G |
+| Encrypted results | 3.7G |
 
 **Per-run steps**
 
 | Phase | Step | Run 1 | Run 2 | Run 3 |
 | --- | --- | ---: | ---: | ---: |
-| Compute | Read relin key | 4.41 | 16.07 | 4.41 |
-| | Setup | 63.1 | 64.7 | 63.9 |
-| | Read ciphertexts | 15912 | 15976 | 16252 |
-| | Compute | 5937 | 6169 | 6177 |
-| | Write result ciphertexts | 42594 | 207179 | 221982 |
-| Decryption | Read secret key | 0.14 | 0.14 | 0.17 |
-| | Setup | 0.008 | 0.006 | 0.007 |
-| | Read result ciphertexts | 7132 | 7069 | 7155 |
-| | Decrypt | 3662 | 3656 | 3539 |
-| | Decode | 6591 | 6755 | 6535 |
-| | Write output text | 902 | 693 | 695 |
+| Server | Initialization | 0.20 | 0.13 | 0.13 |
+| | Load public keys | 3.57 | 4.77 | 4.34 |
+| | Read inputs | 1283.04 | 1333.60 | 1314.78 |
+| | Encrypted computation | 1441.57 | 1430.60 | 1425.06 |
+| | Write outputs | 150.22 | 30153.20 | 31675.36 |
+| | **Total** | **2878.68** | **32922.40** | **34419.78** |
+| Decryption | | 570.6 | 6663.5 | 7053.7 |
+| Postprocessing | | 0.8 | 0.8 | 0.8 |
 
 ## Execution Modes
 

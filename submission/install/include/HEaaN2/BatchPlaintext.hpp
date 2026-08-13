@@ -1,12 +1,12 @@
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
-// Copyright (C) 2025-2026 Crypto Lab Inc.                                    //
+// Copyright (C) 2025-2026 CryptoLab, Inc.                                    //
 //                                                                            //
 // - This file is a part of HEaaN2 homomorphic encryption library.            //
 // - This header is provided for use with the HEaaN2 library and may be       //
 //   included in software that links against HEaaN2.                          //
 // - Redistribution or modification of this file, in whole or in part,        //
-//   is not permitted without prior written consent from Crypto Lab Inc.      //
+//   is not permitted without prior written consent from CryptoLab, Inc.      //
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
@@ -26,6 +26,8 @@ struct HEAAN2_API BatchPlaintext : public IPlaintext {
     PtxtType type() const override;
     PolyRing ring() const override;
     Encoding encoding() const override;
+    bool isNTT() const override;
+    u32 batchSize() const override;
 
     Device device() const override;
     void to(Device device) override;

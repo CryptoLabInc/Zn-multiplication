@@ -1,111 +1,113 @@
 #include "BenchmarkUtils.hpp"
-#include "WordEncoder.hpp"
+#include "ParallelSchedule.hpp"
 
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <string>
 #include <utility>
 #include <vector>
 
 int main(int argc, char **argv) {
+  const auto t_server = Clock::now();
+
+  // Server initialization: arguments, parameters and output directory.
+  auto t_step = Clock::now();
   std::string instance;
   u64 num_target_words;
   u32 batch_size;
   parseArgs(argc, argv, "server_encrypted_compute", instance, num_target_words,
             batch_size);
 
-  const auto params = getParamsSet();
-  u32 log_degree = params.ecd_params.getLogDegree();
+  const auto params = getParamsSet(instance);
   u32 num_words = computeNumWords(params);
   u32 num_cts = computeNumCiphertexts(num_target_words, num_words, batch_size);
+  auto rescale_mod = params.eval_params.getLevels().mods[0];
 
   auto io = ioDir(instance);
+  ensureDir(io / "ciphertexts_download");
+  const double t_init_ms = elapsed_ms(t_step);
 
-  // Step timings reported back to the harness via server_reported_steps.json
+  // Load the public material: the relinearization key and the plaintext
+  // t(X) = -2 + X used for the word-wise reduction.
+  t_step = Clock::now();
+  auto relin_key = serial::loadAsPtr<ISwKey>(
+      (io / "public_keys" / "relin_key.bin").string());
+  auto t_ptxt =
+      serial::loadAsPtr<IPlaintext>((io / "context" / "t_ptxt.bin").string());
+  const double t_keys_ms = elapsed_ms(t_step);
+
+  // Storage for ciphertext pairs and results.
+  struct CtPair {
+    Ptr<ICiphertext> ct0, ct1;
+  };
+  std::vector<CtPair> inputs(num_cts);
+  std::vector<Ptr<ICiphertext>> results(num_cts);
+
+  // Read all inputs.
+  t_step = Clock::now();
+#pragma omp parallel for schedule(dynamic) num_threads(outerThreads(num_cts))
+  for (u32 c = 0; c < num_cts; ++c) {
+    inputs[c].ct0 = serial::loadAsPtr<ICiphertext>(
+        (io / "ciphertexts_upload" / ("ctxt0_" + std::to_string(c) + ".bin"))
+            .string());
+    inputs[c].ct1 = serial::loadAsPtr<ICiphertext>(
+        (io / "ciphertexts_upload" / ("ctxt1_" + std::to_string(c) + ".bin"))
+            .string());
+  }
+  const double t_read_ms = elapsed_ms(t_step);
+
+  // Encrypted computation.
+  t_step = Clock::now();
+  runFheTasks(
+      num_cts, outerThreads(num_cts),
+      [&] {
+        struct Engines {
+          HomEval eval;
+          HomEvalFlexible eval_flex;
+        };
+        return Engines{HomEval(params.eval_params), HomEvalFlexible{}};
+      },
+      [&](u32 c, auto &e) {
+        auto res = ICiphertext::make(getEncType(batch_size));
+        e.eval.tensor(*inputs[c].ct0, *inputs[c].ct1, *res);
+        e.eval.relin(*res, *relin_key);
+        e.eval.mul(*res, *t_ptxt, *res);
+        e.eval_flex.rescale(*res, *res, rescale_mod);
+        results[c] = std::move(res);
+      });
+  const double t_compute_ms = elapsed_ms(t_step);
+
+  // Write all outputs.
+  t_step = Clock::now();
+#pragma omp parallel for schedule(dynamic) num_threads(outerThreads(num_cts))
+  for (u32 c = 0; c < num_cts; ++c) {
+    serial::save(
+        (io / "ciphertexts_download" / ("res_" + std::to_string(c) + ".bin"))
+            .string(),
+        *results[c]);
+  }
+  const double t_write_ms = elapsed_ms(t_step);
+
   std::vector<std::pair<std::string, double>> reported_steps;
   auto report_step = [&](const char *label, double ms) {
     log_time(label, ms);
     reported_steps.emplace_back(label, ms / 1000.0);
   };
 
-  auto t_read_key = Clock::now();
-  auto relin_key = serial::loadAsPtr<ISwKey>(
-      (io / "public_keys" / "relin_key.bin").string());
-  double t_read_key_ms = elapsed_ms(t_read_key);
-  report_step("Read relinearization key", t_read_key_ms);
-
-  auto t_setup = Clock::now();
-  // Build the fixed reduction plaintext t(X) = -2 + X at each word slot.
-  Message t(log_degree);
-  for (size_t w = 0; w < num_words; ++w) {
-    size_t base = w * BIT_WIDTH;
-    t[base] = -2.0;
-    t[base + 1] = 1.0;
-  }
-
-  WordEncodeParams word_ecd_params;
-  word_ecd_params.setLogDegree(log_degree);
-  word_ecd_params.setBatchSize(batch_size);
-  WordEncoder word_encoder(word_ecd_params);
-
-  Message t_msg;
-  word_encoder.arithToComplex(t, t_msg);
-
-  EnDecoder encoder(params.ecd_params);
-  auto t_ptxt = IPlaintext::make(getPtxtType(batch_size));
-  std::vector<Message> t_msgs;
-  t_msgs.reserve(batch_size);
-  for (u32 i = 0; i < batch_size; ++i)
-    t_msgs.push_back(t_msg.copy());
-  encodeBatch(encoder, t_msgs, *t_ptxt, 2);
-
-  HomEval eval(params.eval_params);
-  HomEvalFlexible eval_flex;
-  double t_setup_ms = elapsed_ms(t_setup);
-  report_step("Setup", t_setup_ms);
-
-  ensureDir(io / "ciphertexts_download");
-
-  double t_read_ctxts_ms = 0, t_enc_compute_ms = 0, t_write_ctxts_ms = 0;
-
-  for (u32 c = 0; c < num_cts; ++c) {
-    auto t_rd = Clock::now();
-    auto ctxt0 = serial::loadAsPtr<ICiphertext>(
-        (io / "ciphertexts_upload" / ("ctxt0_" + std::to_string(c) + ".bin"))
-            .string());
-    auto ctxt1 = serial::loadAsPtr<ICiphertext>(
-        (io / "ciphertexts_upload" / ("ctxt1_" + std::to_string(c) + ".bin"))
-            .string());
-    t_read_ctxts_ms += elapsed_ms(t_rd);
-
-    auto t_comp = Clock::now();
-    auto res = ICiphertext::make(getEncType(batch_size));
-    eval.tensor(*ctxt0, *ctxt1, *res);
-    eval.relin(*res, *relin_key);
-    eval.mul(*res, *t_ptxt, *res);
-    eval_flex.rescale(*res, *res, params.eval_params.getLevels().mods[0]);
-    t_enc_compute_ms += elapsed_ms(t_comp);
-
-    auto t_wr = Clock::now();
-    serial::save(
-        (io / "ciphertexts_download" / ("res_" + std::to_string(c) + ".bin"))
-            .string(),
-        *res);
-    t_write_ctxts_ms += elapsed_ms(t_wr);
-  }
-
-  report_step("Read ciphertexts", t_read_ctxts_ms);
-  report_step("Encrypted computation", t_enc_compute_ms);
-  report_step("Write result ciphertexts", t_write_ctxts_ms);
-  report_step("Total", t_read_ctxts_ms + t_setup_ms + t_read_key_ms +
-                           t_enc_compute_ms + t_write_ctxts_ms);
+  report_step("Server initialization", t_init_ms);
+  report_step("Load public keys", t_keys_ms);
+  report_step("Read inputs", t_read_ms);
+  report_step("Encrypted computation", t_compute_ms);
+  report_step("Write outputs", t_write_ms);
+  report_step("Total", elapsed_ms(t_server));
 
   // Write the step timings (in seconds) for the harness to pick up.
   std::ofstream report(io / "server_reported_steps.json");
-  report << std::fixed << std::setprecision(4) << "{\n";
+  report << std::fixed << std::setprecision(5) << "{\n";
   for (size_t i = 0; i < reported_steps.size(); ++i) {
-    report << "  \"" << reported_steps[i].first
-           << "\": " << reported_steps[i].second
+    report << "  \"" << reported_steps[i].first << "\": \""
+           << reported_steps[i].second << "\""
            << (i + 1 < reported_steps.size() ? ",\n" : "\n");
   }
   report << "}\n";

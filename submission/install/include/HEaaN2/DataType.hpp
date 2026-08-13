@@ -1,12 +1,12 @@
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
-// Copyright (C) 2025-2026 Crypto Lab Inc.                                    //
+// Copyright (C) 2025-2026 CryptoLab, Inc.                                    //
 //                                                                            //
 // - This file is a part of HEaaN2 homomorphic encryption library.            //
 // - This header is provided for use with the HEaaN2 library and may be       //
 //   included in software that links against HEaaN2.                          //
 // - Redistribution or modification of this file, in whole or in part,        //
-//   is not permitted without prior written consent from Crypto Lab Inc.      //
+//   is not permitted without prior written consent from CryptoLab, Inc.      //
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
@@ -16,7 +16,14 @@
 #include <algorithm>
 #include <complex>
 #include <cstdint>
-#include <quadmath.h>
+
+// Use long double as 128-bit floating point if it has enough precision,
+// otherwise use __float128.
+#if defined(__LDBL_MANT_DIG__) && __LDBL_MANT_DIG__ == 113
+#define HEAAN2_REAL128_LD 1
+#else
+#define HEAAN2_REAL128_LD 0
+#endif
 
 namespace heaan {
 
@@ -44,20 +51,23 @@ inline HEAAN2_API std::ostream &operator<<(std::ostream &os,
 }
 
 using Real = double;
+#if HEAAN2_REAL128_LD
+using Real128 = long double;
+#else
 using Real128 = __float128;
-using Complex = std::complex<Real>;
-struct HEAAN2_API Complex128 : public std::complex<Real128> {
-    using std::complex<Real128>::complex;
-    Complex128() = default;
-    Complex128(const std::complex<Real128> &v) : std::complex<Real128>(v) {}
-    Complex128(__complex128 v)
-        : std::complex<Real128>{__real__ v, __imag__ v} {}
-};
 
 inline HEAAN2_API std::ostream &operator<<(std::ostream &os, Real128 value) {
     os << static_cast<double>(value);
     return os;
 }
+#endif
+
+using Complex = std::complex<Real>;
+struct HEAAN2_API Complex128 : public std::complex<Real128> {
+    using std::complex<Real128>::complex;
+    Complex128() = default;
+    Complex128(const std::complex<Real128> &v) : std::complex<Real128>(v) {}
+};
 
 inline HEAAN2_API std::ostream &operator<<(std::ostream &os, Complex128 value) {
     os << "(" << static_cast<double>(value.real()) << ", "

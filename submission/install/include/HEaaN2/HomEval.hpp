@@ -1,12 +1,12 @@
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
-// Copyright (C) 2025-2026 Crypto Lab Inc.                                    //
+// Copyright (C) 2025-2026 CryptoLab, Inc.                                    //
 //                                                                            //
 // - This file is a part of HEaaN2 homomorphic encryption library.            //
 // - This header is provided for use with the HEaaN2 library and may be       //
 //   included in software that links against HEaaN2.                          //
 // - Redistribution or modification of this file, in whole or in part,        //
-//   is not permitted without prior written consent from Crypto Lab Inc.      //
+//   is not permitted without prior written consent from CryptoLab, Inc.      //
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
@@ -77,6 +77,7 @@ public:
     /// @param[in] op2 The second plaintext.
     /// @param[out] res The resulting plaintext after addition.
     /// @throws if op1 and op2 have different levels, scales, or devices.
+    /// @throws if op1 and op2 are not both forwardNTTed or both backwardNTTed.
     /// @details if the number of slots of op1 and op2 differ, the smaller
     /// one will be broadcasted to match the larger one.
     void add(const IPlaintext &op1, const IPlaintext &op2,
@@ -86,6 +87,7 @@ public:
     /// @param[in] op2 The plaintext.
     /// @param[out] res The resulting ciphertext after addition.
     /// @throws if op1 and op2 have different levels, scales, or devices.
+    /// @throws if op1 and op2 are not both forwardNTTed or both backwardNTTed.
     /// @details if the number of slots of op1 and op2 differ, the smaller
     /// one will be broadcasted to match the larger one.
     void add(const ICiphertext &op1, const IPlaintext &op2,
@@ -95,6 +97,7 @@ public:
     /// @param[in] op2 The second ciphertext.
     /// @param[out] res The resulting ciphertext after addition.
     /// @throws if op1 and op2 have different levels, scales, or devices.
+    /// @throws if op1 and op2 are not both forwardNTTed or both backwardNTTed.
     /// @details if the number of slots of op1 and op2 differ, the smaller
     /// one will be broadcasted to match the larger one.
     void add(const ICiphertext &op1, const ICiphertext &op2,
@@ -105,6 +108,7 @@ public:
     /// @param[out] res The resulting plaintext (op1 - op2) after
     /// subtraction.
     /// @throws if op1 and op2 have different levels, scales, or devices.
+    /// @throws if op1 and op2 are not both forwardNTTed or both backwardNTTed.
     /// @details if the number of slots of op1 and op2 differ, the smaller
     /// one will be broadcasted to match the larger one.
     void sub(const IPlaintext &op1, const IPlaintext &op2,
@@ -115,6 +119,7 @@ public:
     /// @param[out] res The resulting ciphertext (op1 - op2) after
     /// subtraction.
     /// @throws if op1 and op2 have different levels, scales, or devices.
+    /// @throws if op1 and op2 are not both forwardNTTed or both backwardNTTed.
     /// @details if the number of slots of op1 and op2 differ, the smaller
     /// one will be broadcasted to match the larger one.
     void sub(const ICiphertext &op1, const IPlaintext &op2,
@@ -125,6 +130,7 @@ public:
     /// @param[out] res The resulting ciphertext (op1 - op2) after
     /// subtraction.
     /// @throws if op1 and op2 have different levels, scales, or devices.
+    /// @throws if op1 and op2 are not both forwardNTTed or both backwardNTTed.
     /// @details if the number of slots of op1 and op2 differ, the smaller
     /// one will be broadcasted to match the larger one.
     void sub(const ICiphertext &op1, const ICiphertext &op2,
@@ -134,6 +140,7 @@ public:
     /// @param[in] op2 The second plaintext.
     /// @param[out] res The resulting plaintext after multiplication.
     /// @throws if op1 and op2 have different levels or devices.
+    /// @throws if op1 or op2 is not forwardNTTed.
     /// @details The scale of res will be the product of the scales of op1
     /// and op2.
     /// @details if the number of slots of op1 and op2 differ, the smaller
@@ -145,6 +152,7 @@ public:
     /// @param[in] op2 The plaintext.
     /// @param[out] res The resulting ciphertext after multiplication.
     /// @throws if op1 and op2 have different levels or devices.
+    /// @throws if op1 or op2 is not forwardNTTed.
     /// @details The scale of res will be the product of the scales of op1
     /// and op2.
     /// @details if the number of slots of op1 and op2 differ, the smaller
@@ -159,6 +167,7 @@ public:
     /// ciphertexts.
     /// @throws if op1 and op2 have different levels or devices.
     /// @throws if powers of op1 and op2 are not both 1.
+    /// @throws if op1 or op2 is not forwardNTTed.
     /// @details The scale of res will be the product of the scales of op1
     /// and op2. The resulting ciphertext has power two. To reduce it back
     /// to a power-one ciphertext, use the relin function with an
@@ -173,6 +182,7 @@ public:
     /// @param[in] op1 The plaintext.
     /// @param[in] op2 The complex number.
     /// @param[out] res The resulting plaintext after addition.
+    /// @throws if op1 is not forwardNTTed.
     /// @details op2 will be encoded on the fly so that it has the same
     /// encoding as op1.
     void add(const IPlaintext &op1, Complex128 op2, IPlaintext &res) const;
@@ -180,6 +190,7 @@ public:
     /// @param[in] op1 The ciphertext.
     /// @param[in] op2 The complex number.
     /// @param[out] res The resulting ciphertext after addition.
+    /// @throws if op1 is not forwardNTTed.
     /// @details op2 will be encoded on the fly so that it has the same
     /// encoding as op1.
     void add(const ICiphertext &op1, Complex128 op2, ICiphertext &res) const;
@@ -188,6 +199,7 @@ public:
     /// @param[in] op2 The complex number.
     /// @param[out] res The resulting plaintext (op1 - op2) after
     /// subtraction.
+    /// @throws if op1 is not forwardNTTed.
     /// @details op2 will be encoded on the fly so that it has the same
     /// encoding as op1.
     void sub(const IPlaintext &op1, Complex128 op2, IPlaintext &res) const;
@@ -196,6 +208,7 @@ public:
     /// @param[in] op2 The complex number.
     /// @param[out] res The resulting ciphertext (op1 - op2) after
     /// subtraction.
+    /// @throws if op1 is not forwardNTTed.
     /// @details op2 will be encoded on the fly so that it has the same
     /// encoding as op1.
     void sub(const ICiphertext &op1, Complex128 op2, ICiphertext &res) const;
@@ -203,6 +216,8 @@ public:
     /// @param[in] op1 The plaintext.
     /// @param[in] op2 The complex number.
     /// @param[out] res The resulting plaintext after multiplication.
+    /// @throws if op2 has a nonzero imaginary part and op1 is not
+    /// forwardNTTed.
     /// @details op2 will be encoded on the fly so that it has the same
     /// encoding as op1. The resulting plaintext will have the scale =
     /// (scale of op1) ** 2.
@@ -211,6 +226,8 @@ public:
     /// @param[in] op1 The ciphertext.
     /// @param[in] op2 The complex number.
     /// @param[out] res The resulting ciphertext after multiplication.
+    /// @throws if op2 has a nonzero imaginary part and op1 is not
+    /// forwardNTTed.
     /// @details op2 will be encoded on the fly so that it has the same
     /// encoding as op1. The resulting ciphertext will have the scale =
     /// (scale of op1)
@@ -350,6 +367,8 @@ public:
     /// @param[in] op1 The plaintext.
     /// @param[in] op2 The Gaussian integer.
     /// @param[out] res The resulting plaintext after multiplication.
+    /// @throws if op2 has a nonzero imaginary part and op1 is not
+    /// forwardNTTed.
     /// @details The resulting plaintext will have the scale = scale of op1.
     /// Thus, multiplication by Gaussian integer does not consume level.
     void mul(const IPlaintext &op1, GaussianInt op2, IPlaintext &res) const;
@@ -357,6 +376,8 @@ public:
     /// @param[in] op1 The ciphertext.
     /// @param[in] op2 The Gaussian integer.
     /// @param[out] res The resulting ciphertext after multiplication.
+    /// @throws if op2 has a nonzero imaginary part and op1 is not
+    /// forwardNTTed.
     /// @details The resulting ciphertext will have the scale = scale of
     /// op1. Thus, multiplication by Gaussian integer does not consume
     /// level.
@@ -376,8 +397,26 @@ public:
     /// @throws if op1 and op2 have different moduli.
     /// @throws if op1, op2 and key are on different devices.
     /// @throws if power of op1 and op2 are not both 1.
+    /// @throws if op1 or op2 is not forwardNTTed.
     void mulRescale(const ICiphertext &op1, const ICiphertext &op2,
                     ICiphertext &res, const ISwKey &key) const;
+
+    /// @brief Performs NTT on the input plaintext.
+    /// @param[in] op The input plaintext
+    /// @param[out] res The resulting plaintext in NTT form.
+    void forwardNTT(const IPlaintext &op, IPlaintext &res) const;
+    /// @brief Performs NTT on the input ciphertext.
+    /// @param[in] op The input ciphertext.
+    /// @param[out] res The resulting ciphertext in NTT form.
+    void forwardNTT(const ICiphertext &op, ICiphertext &res) const;
+    /// @brief Performs iNTT on the input plaintext.
+    /// @param[in] op The input plaintext.
+    /// @param[out] res The resulting plaintext in iNTT form.
+    void backwardNTT(const IPlaintext &op, IPlaintext &res) const;
+    /// @brief Performs iNTT on the input ciphertext.
+    /// @param[in] op The input ciphertext.
+    /// @param[out] res The resulting ciphertext in iNTT form.
+    void backwardNTT(const ICiphertext &op, ICiphertext &res) const;
 
     /// @brief Gets the homomorphic evaluation parameters.
     /// @return The Homomorphic Evaluation parameters.
@@ -401,6 +440,7 @@ public:
     /// encrypts the multiplication of the messages of the input ciphertexts.
     /// @throws if op1, op2 and op3 have different moduli or different devices.
     /// @throws if power of op1, op2 and op3 are not all 1.
+    /// @throws if op1, op2 or op3 is not forwardNTTed.
     /// @details The scale of res will be the product of scales of op1, op2 and
     /// op3. The resulting ciphertext has power 3. To reduce it back to a
     /// power-one ciphertext, use the relinCube function with appropriate
@@ -433,6 +473,18 @@ public:
     void rescale(const ICiphertext &op, ICiphertext &res,
                  const PolyMod &mod_to) const;
 
+    /// @brief Adjusts a ciphertext to a target modulus and scale.
+    /// @param[in] op The ciphertext to be adjusted.
+    /// @param[out] res The resulting adjusted ciphertext.
+    /// @param[in] mod_to The target modulus for the adjusted ciphertext.
+    /// @param[in] scale_to The target scale for the adjusted ciphertext.
+    /// @details adjust lowers the modulus of the ciphertext to mod_to and sets
+    /// its scale to scale_to by multiplying the scale difference.
+    /// @throws if the target modulus is not compatible with the modulus of the
+    /// input ciphertext.
+    void adjust(const ICiphertext &op, ICiphertext &res, const PolyMod &mod_to,
+                Real128 scale_to) const;
+
     /// @brief Performs a fused tensor, relinCube, and rescale operation.
     /// @details This function is equivalent to calling tensor, relinCube, and
     /// rescale sequentially, but executes them as a single fused operation for
@@ -450,6 +502,7 @@ public:
     /// @throws if op1, op2, op3, relin_key and relin_cube_key are on different
     /// devices.
     /// @throws if power of op1, op2 and op3 are not all 1.
+    /// @throws if op1, op2 or op3 is not forwardNTTed.
     void mulRescale(const ICiphertext &op1, const ICiphertext &op2,
                     const ICiphertext &op3, ICiphertext &res,
                     const ISwKey &relin_key, const ISwKey &relin_cube_key,
@@ -462,12 +515,28 @@ public:
     /// polynomial data of the ciphertext.
     void setScale(ICiphertext &op, Real128 scale) const;
 
+    /// @brief Set the DFT flag of a plaintext.
+    /// @param[inout] op The plaintext.
+    /// @param[in] dft The target DFT flag.
+    /// @details setDFT modifies only metadata DFT flag. It does not change the
+    /// polynomial data of the plaintext.
+    void setDFT(IPlaintext &op, bool dft) const;
+
+    /// @brief Set the DFT flag of a ciphertext.
+    /// @param[inout] op The ciphertext.
+    /// @param[in] dft The target DFT flag.
+    /// @details setDFT modifies only metadata DFT flag. It does not change the
+    /// polynomial data of the ciphertext.
+    void setDFT(ICiphertext &op, bool dft) const;
+
     /// @brief Copies the ciphertexts into one BatchRLWE ciphertext
     /// @param[in] op The vector of raw pointers to the ciphertexts to be
     /// copied.
     /// @param[out] res The resulting batched ciphertext.
     /// @throws if the encryption type of res is not BatchRLWE.
     /// @throws if the encryption types or batch sizes of op are different.
+    /// @throws if the ciphertexts in op are not all forwardNTTed or all
+    /// backwardNTTed.
     /// @details The encryption types of op can be RLWE or BatchRLWE.
     void batch(const std::vector<const ICiphertext *> &op,
                ICiphertext &res) const;

@@ -1,12 +1,12 @@
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
-// Copyright (C) 2025-2026 Crypto Lab Inc.                                    //
+// Copyright (C) 2025-2026 CryptoLab, Inc.                                    //
 //                                                                            //
 // - This file is a part of HEaaN2 homomorphic encryption library.            //
 // - This header is provided for use with the HEaaN2 library and may be       //
 //   included in software that links against HEaaN2.                          //
 // - Redistribution or modification of this file, in whole or in part,        //
-//   is not permitted without prior written consent from Crypto Lab Inc.      //
+//   is not permitted without prior written consent from CryptoLab, Inc.      //
 //                                                                            //
 ////////////////////////////////////////////////////////////////////////////////
 #pragma once
@@ -48,6 +48,16 @@ struct HEAAN2_API IPlaintext : public DeviceSpecific {
     /// logarithm, scale of the plaintext, and whether the encoding is slot or
     /// coefficient.
     virtual Encoding encoding() const = 0;
+
+    /// @brief Checks whether the plaintext is in NTT (evaluation) form.
+    /// @return true if the plaintext polynomial is in NTT form, false
+    /// otherwise.
+    virtual bool isNTT() const = 0;
+    /// @brief Gets the batch size of the plaintext.
+    /// @return The number of plaintexts packed into this plaintext.
+    /// @details The batch size is 1 for NORMAL plaintexts and the number of
+    /// packed plaintexts for BATCH plaintexts.
+    virtual u32 batchSize() const = 0;
 };
 
 } // namespace heaan

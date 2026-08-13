@@ -31,10 +31,8 @@ inline std::string instanceFromDataSize(const std::string &s) {
 }
 
 inline u32 defaultBatchSizeFromInstance(const std::string &s) {
-  if (s == "single" || s == "small")
+  if (s == "single" || s == "small" || s == "medium" || s == "large")
     return 1;
-  if (s == "medium" || s == "large")
-    return 64;
   throw std::runtime_error("unknown instance: " + s);
 }
 
